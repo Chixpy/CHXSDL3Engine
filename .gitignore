@@ -17,3 +17,6 @@ CHXPas/
 .DS_Store
 *.swp
 *~
+
+# Local changelog draft (see LastChanges.example.md)
+LastChanges.md

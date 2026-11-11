@@ -17,6 +17,16 @@ CHXSDL3Engine provides:
 - A simple FPS manager (`cCHXSDL3FPSManager`).
 - A small INI-based configuration class (`cCHXSDL3Config`).
 
+## Development
+
+This project is primarily developed with the assistance of an AI coding
+agent running in [OpenCode](https://opencode.ai/). The maintainer,
+[Chixpy](https://github.com/Chixpy), reviews the changes, makes the design
+decisions and contributes code from time to time.
+
+AI-assisted changes can still contain mistakes. If you find a problem,
+please open an issue.
+
 ## Requirements
 
 - Free Pascal Compiler 3.3.1 or newer.
@@ -134,6 +144,18 @@ Units/       Type helpers and utility units.
 Tests/       Test programs.
 SDL3/        SDL3-for-Pascal submodule.
 ```
+
+## Changelog
+
+Changes are recorded per year in `ChangeLog<YYYY>.md`; `CHANGELOG.md` is
+the index. To prepare a commit:
+
+1. Copy `LastChanges.example.md` to `LastChanges.md` (ignored by Git).
+2. Write the changes for the next commit.
+3. Run `./git_commit.sh`.
+
+The script stages all changes with `git add .`, updates the yearly changelog,
+regenerates the index, commits everything and clears the draft on success.
 
 ## License
 
