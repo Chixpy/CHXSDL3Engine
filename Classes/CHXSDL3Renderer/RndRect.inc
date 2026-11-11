@@ -643,8 +643,8 @@ end;
 }
 (*
 function cCHXSDL3Renderer.FPRndRectEBorder(const X, Y, W, H, RX, RY: CFloat): Boolean;
-// Dibuja un rectángulo con esquinas redondeadas pero con distintos radios para X e Y.
-// Modificación de mi modificación del algoritmo de Zingl
+// Draws a rectangle with rounded corners but different radii for X and Y.
+// Modification of my modification of Zingl's algorithm.
 var
   CurrX, CurrY, dX, dY, err, e2, X2, Y2, W2, H2, RX2, RY2: Integer;
 begin
@@ -774,7 +774,7 @@ begin
   RX2 := dY * 2; 
   RY2 := RY2 * 2;
 
-  // 1st interacción. 1st points and center rectangle
+  // 1st interaction. 1st points and center rectangle
   Result := RectangleFilled(X2, Y2 + RYi, W2, H2 - 2 * RYi);
 
   e2 := err * 2;
@@ -816,13 +816,14 @@ begin
     end;
   end;
 
-  // Esta vez podría incluirse en el bucle principal, pero de esta forma evitamos los cálculos posteriores
+  // This time it could be included in the main loop, but this way we avoid
+  // the later calculations.
   if DrawLine then
     Result := PointMirrorHVFilled(CurrX - W2, CurrY + H2, X2, Y2, True, False) and Result;
 end;
 
 function cCHXSDL3Renderer.FPRndRectEOnlyFill(const X, Y, W, H, RX, RY: CFloat): Boolean;
-// Modificación de la modificación del algoritmo de Zingl
+// Modification of the modification of Zingl's algorithm.
 var
   CurrX, CurrY, dX, dY, err, e2, X2, Y2, W2, H2, RXi, RX2, RY2: Integer;
   DrawLine: Boolean;
@@ -923,7 +924,7 @@ begin
     Result := SetColor(FillC) and RndRectEOnlyFill(X, Y, W, H, RX, RY) and Result;
   {$POP}
 
-  Result := SetColor(BorderC) and Result; // Poscondición
+  Result := SetColor(BorderC) and Result; // Postcondition.
 
   if BorderC.A > 0 then
     Result := RndRectEBorder(X, Y, W, H, RX, RY) and Result;

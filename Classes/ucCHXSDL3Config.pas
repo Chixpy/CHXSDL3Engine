@@ -8,8 +8,7 @@ unit ucCHXSDL3Config;
 interface
 
 uses
-  CTypes, IniFiles, // FPC
-  uaCHXConfig; // CHXPas
+  Classes, SysUtils, CTypes, IniFiles; // FPC
 
 const
   krsIniSectionSDL3Engine = 'SDL3Engine';
@@ -23,18 +22,42 @@ type
 
   { cCHXSDL3Config }
 
-  cCHXSDL3Config = class(caCHXConfig)
+  cCHXSDL3Config = class(TPersistent)
   public
+    DefaultFileName : String;
+    {< Default filename used when LoadFromFile or SaveToFile is called with
+         an empty filename. }
+
     Width : CInt;
     Height : CInt;
-    Scale: CInt;
+    Scale : CInt;
     FullScreen : Boolean;
     Render : String;
 
-    procedure ResetDefaultConfig; override;
+    procedure ResetDefaultConfig; virtual;
+    {< Sets config properties to default values. }
 
-    procedure LoadFromIni(aIniFile : TMemIniFile); override;
-    procedure SaveToIni(aIniFile : TMemIniFile); override;
+    procedure LoadFromFile(const aFilename : String); virtual;
+    {< Loads data from an .ini file.
+
+      @param(aFilename Filename of the .ini file to read from. If empty,
+        DefaultFileName is used.)
+    }
+
+    procedure SaveToFile(const aFilename : String;
+      const ClearFile : Boolean); virtual;
+    {< Saves data to an .ini file.
+
+      @param(aFilename Filename of the .ini file to write to. If empty,
+        DefaultFileName is used.)
+      @param(ClearFile Clear file content before saving.)
+    }
+
+    procedure LoadFromIni(aIniFile : TMemIniFile); virtual;
+    {< Loads data from an already opened .ini file. }
+
+    procedure SaveToIni(aIniFile : TMemIniFile); virtual;
+    {< Saves data to an already opened .ini file. }
 
     constructor Create;
     destructor Destroy; override;
@@ -70,11 +93,78 @@ end;
 constructor cCHXSDL3Config.Create;
 begin
   inherited Create;
+  ResetDefaultConfig;
 end;
 
 destructor cCHXSDL3Config.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure cCHXSDL3Config.LoadFromFile(const aFilename : String);
+var
+  aName : String;
+  aIniFile : TMemIniFile;
+  IniFileOps : TIniFileOptions;
+begin
+  aName := aFilename;
+  if aName = EmptyStr then
+  begin
+    aName := DefaultFileName;
+
+    if aName = EmptyStr then
+      Exit;
+  end;
+
+  if not FileExists(aName) then
+    Exit;
+
+  aIniFile := TMemIniFile.Create(aName);
+  try
+    IniFileOps := aIniFile.Options;
+    Exclude(IniFileOps, ifoCaseSensitive); // Case insensitive
+    Exclude(IniFileOps, ifoFormatSettingsActive); // Ignore FormatSettings
+    aIniFile.Options := IniFileOps;
+
+    LoadFromIni(aIniFile);
+  finally
+    aIniFile.Free;
+  end;
+end;
+
+procedure cCHXSDL3Config.SaveToFile(const aFilename : String;
+  const ClearFile : Boolean);
+var
+  aName : String;
+  aIniFile : TMemIniFile;
+  IniFileOps : TIniFileOptions;
+begin
+  aName := aFilename;
+  if aName = EmptyStr then
+  begin
+    aName := DefaultFileName;
+
+    if aName = EmptyStr then
+      Exit;
+  end;
+
+  // Ini files are autoloaded on creation, so removing the file may be faster
+  // than loading and clearing it.
+  if ClearFile then
+    DeleteFile(aName);
+
+  aIniFile := TMemIniFile.Create(aName);
+  try
+    IniFileOps := aIniFile.Options;
+    Exclude(IniFileOps, ifoCaseSensitive); // Case insensitive
+    Exclude(IniFileOps, ifoFormatSettingsActive); // Ignore FormatSettings
+    aIniFile.Options := IniFileOps;
+
+    SaveToIni(aIniFile);
+    aIniFile.UpdateFile;
+  finally
+    aIniFile.Free;
+  end;
 end;
 
 procedure cCHXSDL3Config.SaveToIni(aIniFile : TMemIniFile);

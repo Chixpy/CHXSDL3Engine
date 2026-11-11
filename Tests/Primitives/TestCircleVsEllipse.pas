@@ -24,7 +24,7 @@ const
 
 type
 
-  TState = (stBorFill, stBorder, stTBorder, stFilled, stTFilled);
+  TState = (stBorFill, stBorder, stFilled);
 
   { cSDL3Eng }
 
@@ -60,9 +60,7 @@ begin
   case State of
     stBorFill : sState := 'Border + Only Fill';
     stBorder : sState := 'Border';
-    stTBorder : sState := 'Triangles Border';
     stFilled : sState := 'Full Filled';
-    stTFilled : sState := 'Triangles Filled';
   otherwise sState := '<Undefined>';
   end;
 end;
@@ -112,11 +110,7 @@ begin
 
       stBorder : Render.EllipseBorder(CX, CY, Radius, Radius);
 
-      stTBorder : Render.TEllipseBorder(CX, CY, Radius, Radius);
-
       stFilled : Render.EllipseFilled(CX, CY, Radius, Radius);
-
-      stTFilled : Render.TEllipseFilled(CX, CY, Radius, Radius);
     end; // case State of
   end;
 
@@ -127,11 +121,7 @@ begin
 
       stBorder : Render.CircleBorder(CX, CY, Radius);
 
-      stTBorder : Render.TCircleBorder(CX, CY, Radius);
-
       stFilled : Render.CircleFilled(CX, CY, Radius);
-
-      stTFilled : Render.TCircleFilled(CX, CY, Radius);
     end; // case State of
   end;
 
@@ -200,7 +190,7 @@ begin
   ProgName := ExtractFileName(ParamStr(0));
   ChDir(ExtractFilePath(ParamStr(0)));
 
-  // Aplication metadata
+  // Application metadata
   SDL_SetAppMetadata(PAnsiChar(ProgName), kProgVersion,
     PAnsiChar('com.chixpy.' + ProgName));
   SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, 'Chixpy');

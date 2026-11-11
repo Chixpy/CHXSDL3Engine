@@ -151,7 +151,7 @@ begin
     Exit(False);
   end;
 
-  Result := RegPolyCCVertices(PArr, X, Y, RPCirCircleSL(NSides, SideSize),
+  Result := RegPolyCCVertices(PArr, X, Y, RegPolyCircumRadiusFromSide(NSides, SideSize),
     NSides, Angle);
 end;
 
@@ -166,7 +166,7 @@ begin
     Exit(False);
   end;
 
-  Result := RegPolyCC(X, Y, RPCirCircleSL(NSides, SideSize), NSides,
+  Result := RegPolyCC(X, Y, RegPolyCircumRadiusFromSide(NSides, SideSize), NSides,
     BorderC, FillC, Angle);
 end;
 
@@ -180,7 +180,7 @@ begin
     Exit(False);
   end;
 
-  Result := RegPolyCCBorder(X, Y, RPCirCircleSL(NSides, SideSize),
+  Result := RegPolyCCBorder(X, Y, RegPolyCircumRadiusFromSide(NSides, SideSize),
     NSides, Angle);
 end;
 
@@ -194,7 +194,7 @@ begin
     Exit(False);
   end;
 
-  Result := RegPolyCCFilled(X, Y, RPCirCircleSL(NSides, SideSize),
+  Result := RegPolyCCFilled(X, Y, RegPolyCircumRadiusFromSide(NSides, SideSize),
     NSides, Angle);
 end;
 
@@ -208,7 +208,7 @@ begin
     Exit(False);
   end;
 
-  Result := RegPolyCCFillOnly(X, Y, RPCirCircleSL(NSides, SideSize),
+  Result := RegPolyCCFillOnly(X, Y, RegPolyCircumRadiusFromSide(NSides, SideSize),
     NSides, Angle);
 end;
 {< This source is free software; you can redistribute it and/or modify it under

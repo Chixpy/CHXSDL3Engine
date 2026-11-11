@@ -3,7 +3,7 @@
 Omitted:
 
 - Private and protected methods, fields or properties.
-- Contructor `Create`, if it doesn't have parameters.
+- Constructor `Create`, if it doesn't have parameters.
 - Destructor `Destroy`, unless it has another name or it has an alternative.
 - `constructor`, `destructor`, `function`, `procedure`, `operator` keywords.
   - As well `inline`, `overload`, `override`, etc.
@@ -11,7 +11,7 @@ Omitted:
 - `property` keyword and difference with fields. **{R}** = Read-only.
 - `const` of parameters, parameters type and default values.
   - `var` (when used as return value) and `out` are showed in cursive.
-- FCL / RTL inherited methods or properties. _CHXPas_ ones are added.
+- FCL / RTL inherited methods or properties.
 - Full declaration and comments. See documentation or source code.
 
 ## ucCHXSDL3Engine.pas
@@ -42,19 +42,18 @@ Omitted:
 
 - Constants and Resource Strings:
   - **krsIniSectionSDL3Engine**, **krsIniKeyWidth**, **krsIniKeyHeight**,
-    **krsIniKeyScale**, **krsIniKeyFullScreen**, **krsIniKeyUseGPU**
+    **krsIniKeyScale**, **krsIniKeyFullScreen**, **krsIniKeyRender**
 
 ### cCHXSDL3Config
 
 - Inherits from:
-  - caCHXConfig, caCHXStorableIni, caCHXStorable
   - TPersistent
 - Properties and Fields:
   - **DefaultFileName** : String
   - **Width**, **Height** : CInt
   - **Scale** : CInt
   - **FullScreen** : Boolean
-  - **UseGPU** : Boolean
+  - **Render** : String
 - Methods:
   - **ResetDefaultConfig**
   - **LoadFromFile** (Filename)

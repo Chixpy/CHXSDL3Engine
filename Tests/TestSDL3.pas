@@ -33,7 +33,7 @@ begin
     Halt(1);
   end;
 
-  WriteLn('Ventana creada. ESC para salir.');
+  WriteLn('Window created. Press ESC to exit.');
   while Running do
   begin
     SDL_SetRenderDrawColor(Renderer, 100, 149, 237, 255);

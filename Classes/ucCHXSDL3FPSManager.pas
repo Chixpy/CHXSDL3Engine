@@ -15,7 +15,7 @@ unit ucCHXSDL3FPSManager;
   This unit and class:
 
   - Encapsulate all functionallity inside a class, instead of using a record
-    wich must be used as parameter of functions (it's SDL general design).
+    which must be used as parameter of functions (it's SDL general design).
   - Use an absolute frame counter independent of the one used for interpolation.
   - `Delay` stores actual compute time and whole frame time (with Delay) as
     properties and returns waited time (or miliseconds late)

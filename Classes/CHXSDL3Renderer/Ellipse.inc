@@ -6,7 +6,7 @@
 
   In general in all methods with Alois Zingl's algorithm uses squares and
   multiplications that can overflow easily `Integer` range AND break
-  `CFloat` (`Single`) unit precision wich must be handled:
+  `CFloat` (`Single`) unit precision which must be handled:
 
   - Integer: Abs(`RX` or `RY`) > 46340 overflows Integer size. Creating an
     exception.

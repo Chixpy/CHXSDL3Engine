@@ -23,7 +23,7 @@ end;
 function cCHXSDL3Renderer.Line(const X1, Y1, X2, Y2 : CFloat) : Boolean;
 {
   Renderer Logical Presentation draw it _smooth_, with 1 logical
-  pixel of width. If Lenght < 2, 2 logical pixels will overlap their
+  pixel of width. If Length < 2, 2 logical pixels will overlap their
   opacity. This was fixed for Horizontal and Vertical lines.
 }
 begin

@@ -213,7 +213,7 @@ begin
   ProgName := ExtractFileName(ParamStr(0));
   ChDir(ExtractFilePath(ParamStr(0)));
 
-  // Aplication metadata
+  // Application metadata
   SDL_SetAppMetadata(PAnsiChar(ProgName), kProgVersion,
     PAnsiChar('com.chixpy.' + ProgName));
   SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, 'Chixpy');

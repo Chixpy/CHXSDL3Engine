@@ -75,19 +75,19 @@ type
     // Using SDL native functions
     SDL_SetRenderDrawColor(Window.PSDLRenderer, 80, 80, 140, 255);
 
-    // Actually, SDLRenderer := Window.PSDLRenderer as a shorcut.
+    // Actually, SDLRenderer := Window.PSDLRenderer as a shortcut.
     // It can be changed if multiple windows are created.
     SDL_RenderClear(SDLRenderer);
     SDL_SetRenderDrawColor(SDLRenderer, 196, 196, 0, 255);
-    SDL_RenderDebugText(SDLRenderer, RenderW * 0.5 - 60,
-      RenderH * 0.5 - 4, '¡Hello, World!'); // Centering, chars are 8x8
+    SDL_RenderDebugText(SDLRenderer, kRenderW * 0.5 - 60,
+      kRenderH * 0.5 - 4, '¡Hello, World!'); // Centering, chars are 8x8
     SDL_RenderDebugText(SDLRenderer, 10 , 10, 'Press any letter to Exit.');
 
     // Some rectangles with transparency
     SDL_SetRenderDrawBlendMode(SDLRenderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(SDLRenderer, 128, 128, 128, 128);
     aRect.X := 0; aRect.Y := 0;
-    aRect.W := RenderW / 2.5; aRect.H := RenderH / 2.5;
+    aRect.W := kRenderW / 2.5; aRect.H := kRenderH / 2.5;
     SDL_RenderFillRect(SDLRenderer, @aRect);
     aRect.X += aRect.W * 0.5; aRect.Y += aRect.H * 0.5;
     SDL_RenderFillRect(SDLRenderer, @aRect);
@@ -153,7 +153,7 @@ var
   CTCEng : cSDL3Eng;
 
 begin
-  CTCEng := cSDL3Eng.Create('CHXSDL3Engine Test', RenderW, RenderH, 0,
+  CTCEng := cSDL3Eng.Create('CHXSDL3Engine Test', kRenderW, kRenderH, 0,
     kFullScreen, kRDriver);
   try
     // With `AutoInt = False` (7th parameter)

@@ -10,10 +10,10 @@
   - SP and FP Fill and FillOnly use general polygon fill, there are
     optimized methods for triangles.
   - Default Fill and OnlyFill because they fill half of the
-    border. Se necesita calcular la bisectriz del angulo que forman los lados
-    y desplazarse media ancho del borde  hacia adentro (y hacia a fuera)
-    para que concuerde con el tamaño del borde. Y hay que averiguar que es
-    "hacia dentro" y "hacia afuera".
+    border. The angle bisector of the sides must be calculated and moved
+    half the border width inwards (and outwards) so it matches the border
+    size. It is also necessary to determine what "inwards" and "outwards"
+    mean.
   - Make RawTriangleFilled methods that don't consider the size of the
     border.
 }
@@ -389,10 +389,10 @@ function cCHXSDL3Renderer.SPTriangleFilledUnsafe(
 begin
   //  ToDo: Create an optimized method for triangles
   {
-    Sería dividir el triángulo en dos partes horizontalmente por el
-    punto esté verticalmente en el medio y tan solo se necesita se
-    buscar los puntos de intersección de dos líneas en vez de tres
-    para cada scanline.
+    It would split the triangle into two parts horizontally at the
+    point that is vertically in the middle, so only the intersection
+    points of two lines instead of three need to be found for each
+    scanline.
   }
   Result := SPPolygonFilled(PArr, idxFirst, 3);
 end;
@@ -437,10 +437,10 @@ function cCHXSDL3Renderer.SPTriangleFillOnlyUnsafe(
 begin
   //  ToDo: Create an optimized method for triangles
   {
-    Sería dividir el triángulo en dos partes horizontalmente por el
-    punto esté verticalmente en el medio y tan solo se necesita se
-    buscar los puntos de intersección de dos líneas en vez de tres
-    para cada scanline.
+    It would split the triangle into two parts horizontally at the
+    point that is vertically in the middle, so only the intersection
+    points of two lines instead of three need to be found for each
+    scanline.
   }
   Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, 3);
 end;

@@ -362,9 +362,9 @@ begin
     
     Write('SDL_GetNumAllocations: ');
     WriteLn(SDL_GetNumAllocations);
-    aInt1 := 5; // Mostramos 5 como máximo
+    aInt1 := 5; // Show at most 5.
     WriteLn('Environment variables at start: (Showing ', aInt1, ' max.)');
-    // Recorriendo Array de C Strings
+    // Iterating over an array of C strings.
     Environment := SDL_GetEnvironment;
     aPPAnsiChar := SDL_GetEnvironmentVariables(Environment);
     CurrPPAnsiChar := aPPAnsiChar;
@@ -375,8 +375,8 @@ begin
       Dec(aInt1);
     end;
     SDL_Free(aPPAnsiChar);
-    // NOTE: Hay otros dos conjuntos de funciones para obtener la variables
-    //   del entorno, con cache o sin ella.
+    // NOTE: There are two other sets of functions to get environment
+    //   variables, with or without cache.
 
     // SDL_platform.h
 
@@ -397,7 +397,7 @@ begin
     PropertiesID := SDL_GetGlobalProperties;
     WriteLn('SDL_GetGlobalProperties: ', PropertiesID);
     SDL_EnumerateProperties(PropertiesID, @WriteProperty, nil);
-    //< Ya podría ser así siempre...
+    //< It could always be like this...
 
     // SDL_pixels.h
     //WriteSection('SDL_pixels.h');

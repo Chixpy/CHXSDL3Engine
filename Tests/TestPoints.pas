@@ -1,7 +1,7 @@
 program TestPoints;
 {<
   Program to test if drawing and array of points is clearly faster than
-  drawing the points one by one and wich way is faster.
+  drawing the points one by one and which way is faster.
 
   - `[F1]`: Toggle help. Writing text is expensive.
   - `[M]`: Changes between:
@@ -203,7 +203,7 @@ begin
   IniName := ChangeFileExt(ProgName, '.ini');
   ChDir(ExtractFilePath(ParamStr(0)));
 
-  // Aplication metadata
+  // Application metadata
   SDL_SetAppMetadata(PAnsiChar(ProgName), kProgVersion,
     PAnsiChar('com.chixpy.' + ProgName));
   SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, 'Chixpy');

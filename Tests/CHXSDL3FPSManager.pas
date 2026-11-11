@@ -61,9 +61,9 @@ begin
       SDL_RenderDebugText(Renderer, 10 , 50, PChar('Frame Count: '
         + IntToStr(FPSMang.FrameCount)));
       SDL_RenderDebugText(Renderer, 10 , 60, PChar('Last Frame Compute: '
-        + IntToStr(FPSMang.LastCompTime)));
+        + IntToStr(FPSMang.LastBusyTime)));
       SDL_RenderDebugText(Renderer, 10 , 70, PChar('Last Frame Total: '
-        + IntToStr(FPSMang.LastFrameTime)));
+        + IntToStr(FPSMang.LastFullTime)));
       SDL_RenderDebugText(Renderer, 10 , 80, PChar('ms ahead (- behind): '
         + IntToStr(aDelay)));
 

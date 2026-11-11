@@ -3,7 +3,7 @@
 pushd "$(dirname "$0")" > /dev/null
 
 mkdir -p bin
-mkdir -p ../../../tmp/lib
+mkdir -p lib
 
 fpc @fpcfg.cfg $@
 ERRCOMP=$?

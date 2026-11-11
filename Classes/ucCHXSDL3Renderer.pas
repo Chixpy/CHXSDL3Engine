@@ -41,7 +41,7 @@ unit ucCHXSDL3Renderer;
     @item(For filled (AABB) rectangles.)
   )
 
-  All drawing functions use float parameters `CFloat`, wich is
+  All drawing functions use float parameters `CFloat`, which is
   equivalent to `Single` in _FPC_.
 
   Internally, SDL3 _[s]_ variants are actually used for drawing. Single point,
@@ -151,7 +151,6 @@ interface
 uses
   SysUtils, CTypes, Math, // FPC RTL
   SDL3, // SDL3
-  uCHXMath, // CHXPas
   uCHXSDL3TypeHelpers; // CHXSDL3engine
 
 resourcestring
@@ -165,7 +164,7 @@ type
     context, this class is created by `cCHXSDL3Window` automatically too.
 
     Nearly all methods are functions with boolean Result as SDL_Renderer
-    funtions are. They return @False on error and `SDL_GetError` can give
+    functions are. They return @False on error and `SDL_GetError` can give
     information, cCHXSDL3Renderer ones included. cCHXSDL3Renderer constructors
     throw an Exception instead.
   }
@@ -511,7 +510,7 @@ type
       If `(Abs(X1 - X2) < 1) or (Abs(Y1 - Y2) < 1)`, it draws a full pixel.
 
       @note(Renderer Logical Presentation draw it _smooth_, with 1 logical
-        pixel of width. If Lenght < 2, 2 logical pixels will overlap their
+        pixel of width. If Length < 2, 2 logical pixels will overlap their
         opacity. This was fixed for Horizintal and Vertical lines...)
 
       @param(P1 First point coordinates.)
@@ -536,7 +535,7 @@ type
     {<< Draw an array of concatenated lines with current draw color.
 
       @note(Renderer Logical Presentation draw it _smooth_, with 1 logical
-        pixel of width. If Lenght < 2, 2 logical pixels will overlap their
+        pixel of width. If Length < 2, 2 logical pixels will overlap their
         opacity.)
 
       @param(PArr Array of points.)
@@ -574,7 +573,7 @@ type
     {<< Draw an array of segments, not concatenated, with current draw color.
 
       @note(Renderer Logical Presentation draw it _smooth_, with 1 logical
-        pixel of width. If Lenght < 2, 2 logical pixels will overlap their
+        pixel of width. If Length < 2, 2 logical pixels will overlap their
         opacity.)
 
       @param(SegArr Array of points.)
@@ -1112,7 +1111,7 @@ type
       const BorderC, FillC : TSDL_FColor) : Boolean; overload; inline;
     {<< Draw a filled polygon and its border with different colors.
 
-      With idxFirst and Count can select wich points will be used from a
+      With idxFirst and Count can select which points will be used from a
       bigger array.
 
       @warning(Vertices will acumulate border opacity because `Lines` is used.)
@@ -1136,7 +1135,7 @@ type
       const idxFirst : Integer = 0; Count : Integer = 0) : Boolean;
     {<< Draw a polygon border with current color.
 
-      With idxFirst and Count can select wich points will be used from a
+      With idxFirst and Count can select which points will be used from a
       bigger array.
 
       @warning(Vertices will acumulate border opacity because `Lines` is used.)
@@ -1157,7 +1156,7 @@ type
       const idxFirst : Integer = 0; Count : Integer = 0) : Boolean;
     {<< Draw a filled polygon with current color.
 
-      With idxFirst and Count can select wich points will be used from a
+      With idxFirst and Count can select which points will be used from a
       bigger array.
 
       @param(PArr Array of points.)
@@ -1176,7 +1175,7 @@ type
       const idxFirst : Integer = 0; Count : Integer = 0) : Boolean;
     {<< Draw the fill of a polygon with current color.
 
-      With idxFirst and Count can select wich points will be used from a
+      With idxFirst and Count can select which points will be used from a
       bigger array.
 
       @param(PArr Array of points.)
@@ -1273,14 +1272,14 @@ type
     }
 
   {
-    RegPolySS[X]: Regular Polygon by its Side Lenght.
+    RegPolySS[X]: Regular Polygon by its Side Length.
   }
 
     function RegPolySSVertices(out PArr : TSDLFPointDynArray;
       const X, Y, SideSize : CFloat; const NSides : Integer;
       const Angle : CFloat = 0) : Boolean;
     {< Populate `PArr` with the vertices of a Regular Polygon with `NSides`
-      defined by Side lenght and rotated an `Angle`.
+      defined by Side length and rotated an `Angle`.
 
       @param(PArr Array of points returned.)
       @param(X Horizontal position of the center of the circumscribed
@@ -1748,6 +1747,16 @@ type
   end;
 
 implementation
+
+const
+  kSin45 = SqRt(2) * 0.5; //< Sin(45 degrees).
+
+{ Circumscribed circle radius of a regular polygon with a known side length. }
+function RegPolyCircumRadiusFromSide(const NSides: Integer;
+  const SideL: Double): Double; inline;
+begin
+  Result := SideL * 0.5 * Cosecant(Pi / NSides);
+end;
 
 // Create
 

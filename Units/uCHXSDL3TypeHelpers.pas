@@ -3,7 +3,7 @@ unit uCHXSDL3TypeHelpers;
 
   - Dynamic arrays of `TSDL_FColor`, `TSDL_FPoint`, `TSDL_FRect`, etc.:
       `TSDLFColorDynArray`, `TSDLFPointDynArray`, etc.
-  - ToDo: Specialized generic lists for those types, wich can be
+  - ToDo: Specialized generic lists for those types, which can be
     inherited to add custom methods: `cSDLFPointList`, `cSDLFRectList`, etc.
     -`FGL` unit returns a not found operator overload error.
     - Try with other container generics: `Generics.Collections` use an
@@ -170,8 +170,8 @@ type
         use a rainbow one (red -> green -> violet).
       - Select random colors without worrying about dark colors.
 
-      @warning(It's a dirty fast imprecise algorithm. See CHXPas' `uCHXColor`
-        unit for more info about algorithm.)
+      @warning(It's a dirty fast imprecise algorithm. See the `uCHXColor`
+        unit in the CHXPas project for a more precise one.)
     }
 
   {
@@ -218,8 +218,8 @@ type
         use a rainbow one (red -> green -> violet).
       - Select random colors without worrying about dark colors.
 
-      @warning(It's a dirty fast imprecise algorithm. See CHXPas' `uCHXColor`
-        unit for more info about algorithm.)
+      @warning(It's a dirty fast imprecise algorithm. See the `uCHXColor`
+        unit in the CHXPas project for a more precise one.)
     }
 
   {
@@ -881,7 +881,7 @@ end;
 
 procedure TSDLFPointH.SetAngle(const aAngle: CFloat);
 begin
-  // ToDo: Test wich is more efficient:
+  // ToDo: Test which is more efficient:
   //   aMag := GetMagnitude;
   //   Self.InitPolar(aMag, aAngle);
   // or:
@@ -1604,7 +1604,7 @@ end;
 
 operator = (const R1, R2: TSDL_FRect): Boolean;
 begin
-  // ToDo: ¿Hacer estricto?
+  // ToDo: ¿Make it strict?
   Result := SameValue(R1.X, R2.X) and SameValue(R1.Y, R2.Y) 
     and SameValue(R1.W, R2.W) and SameValue(R1.H, R2.H)
 end;

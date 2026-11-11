@@ -37,6 +37,10 @@ type
     procedure DrawHelp;
   end;
 
+var
+  SDL3Eng : cSDL3Eng;
+  ProgName: String;
+
 {
   cSDL3Eng
 }
@@ -105,6 +109,7 @@ begin
       SDLK_Q: ExitProg := True;
 
       otherwise Handled := False;
+      end;
     end;
   end;
 end;
@@ -113,14 +118,11 @@ end;
   Main program
 }
 
-var
-  SDL3Eng : cSDL3Eng;
-  ProgName: String;
 begin
   ProgName := ExtractFileName(ParamStr(0));
   ChDir(ExtractFilePath(ParamStr(0)));
 
-  // Aplication metadata
+  // Application metadata
   SDL_SetAppMetadata(PAnsiChar(ProgName), kProgVersion,
     PAnsiChar('com.chixpy.' + ProgName));
   SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, 'Chixpy');

@@ -72,8 +72,8 @@ type
   protected
     CurrTextInput: String;
 
-    SDLRenderer: PSDL_Renderer; //< Window.PSDLRenderer shorcut.
-    SDLWindow: PSDL_Window; //< Window.PSDLWindow shorcut.
+    SDLRenderer: PSDL_Renderer; //< Window.PSDLRenderer shortcut.
+    SDLWindow: PSDL_Window; //< Window.PSDLWindow shortcut.
 
     FPSMng: cCHXSDL3FPSManager; //< FPS manager
     LastComputeTime : CUInt64;

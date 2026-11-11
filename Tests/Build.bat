@@ -4,9 +4,9 @@ chcp 65001 > nul
 
 pushd "%~dp0"
 mkdir bin > nul
-mkdir ..\..\tmp\lib > nul
+mkdir lib > nul
 
-echo Compilando Primitives...
+echo Compiling tests...
 fpc @fpcfg.cfg %*
 set "ERRCOMP=!ERRORLEVEL!"
 
