@@ -1,0 +1,19 @@
+# Build artifacts
+bin/
+lib/
+tmp/
+*.ppu
+*.o
+*.a
+*.or
+*.compiled
+*.bak
+backup/
+
+# Local reference copy of CHXPas (not part of this repository)
+CHXPas/
+
+# Editor / OS
+.DS_Store
+*.swp
+*~

@@ -1,0 +1,190 @@
+program CHXSDL3Engine;
+{<
+  A simple program with cCHXSDL3Engine.
+
+  Shows a simple text with native SDL methods.
+
+  `cCHXSDL3Engine` descendant is declared and implemented here.
+  A better practice is that it would be in it's own unit.
+
+  (C) 2026 Chixpy https://github.com/Chixpy
+}
+{$mode ObjFPC}{$H+}
+uses
+  CTypes, SDL3, ucCHXSDL3Engine;
+
+const
+  // Renderer scales images to actual size of the window.
+  kRenderH = 200;
+  kRenderW = kRenderH * 4 div 3;
+  kWinScale = 900 div kRenderH;
+  kFullScreen = False;
+  kRDriver = '';
+
+type
+
+  { cSDL3Eng }
+
+  cSDL3Eng = class(cCHXSDL3Engine)
+  protected
+    procedure Setup; override; { It's abstract. }
+    procedure Finish; override; { It's abstract. }
+    procedure Compute(var ExitProg : Boolean); override; { It's abstract. }
+    procedure Draw; override; { It's abstract. }
+    procedure HandleEvent(const aEvent : TSDL_Event; var Handled : Boolean;
+      var ExitProg : Boolean); override; { It's virtual. }
+
+  public // or protected
+    {
+      Declaration of "global" variables and auxiliar methods.
+    }
+  end;
+
+  { cSDL3Eng }
+  procedure cSDL3Eng.Setup;
+  begin
+    {
+      Code executed before enter the engine's loop.
+    }
+    ShowFrameRate := True;
+  end;
+
+  procedure cSDL3Eng.Finish;
+  begin
+    {
+      Code executed after exiting the engine's loop.
+    }
+  end;
+
+  procedure cSDL3Eng.Compute(var ExitProg : Boolean);
+  begin
+    {
+      Step frame logic.
+
+      - ExitProg: if set to True, then Exit the program.
+    }
+  end;
+
+  procedure cSDL3Eng.Draw;
+  var
+    aRect: TSDL_FRect;
+  begin
+    {
+      Draw frame logic.
+    }
+    // Using SDL native functions
+    SDL_SetRenderDrawColor(Window.PSDLRenderer, 80, 80, 140, 255);
+
+    // Actually, SDLRenderer := Window.PSDLRenderer as a shorcut.
+    // It can be changed if multiple windows are created.
+    SDL_RenderClear(SDLRenderer);
+    SDL_SetRenderDrawColor(SDLRenderer, 196, 196, 0, 255);
+    SDL_RenderDebugText(SDLRenderer, RenderW * 0.5 - 60,
+      RenderH * 0.5 - 4, '¡Hello, World!'); // Centering, chars are 8x8
+    SDL_RenderDebugText(SDLRenderer, 10 , 10, 'Press any letter to Exit.');
+
+    // Some rectangles with transparency
+    SDL_SetRenderDrawBlendMode(SDLRenderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(SDLRenderer, 128, 128, 128, 128);
+    aRect.X := 0; aRect.Y := 0;
+    aRect.W := RenderW / 2.5; aRect.H := RenderH / 2.5;
+    SDL_RenderFillRect(SDLRenderer, @aRect);
+    aRect.X += aRect.W * 0.5; aRect.Y += aRect.H * 0.5;
+    SDL_RenderFillRect(SDLRenderer, @aRect);
+
+    // Faster alpha, but color must be premultiplied by alpha (as float)
+    SDL_SetRenderDrawBlendMode(SDLRenderer, SDL_BLENDMODE_BLEND_PREMULTIPLIED);
+    SDL_SetRenderDrawColor(SDLRenderer, 64, 64, 64, 128); // Premultiplied
+    aRect.X += aRect.W * 0.5; aRect.Y += aRect.H * 0.5;
+    SDL_RenderFillRect(SDLRenderer, @aRect);
+    aRect.X += aRect.W * 0.5; aRect.Y += aRect.H * 0.5;
+    SDL_RenderFillRect(SDLRenderer, @aRect);
+  end;
+
+  procedure cSDL3Eng.HandleEvent(const aEvent : TSDL_Event;
+  var Handled : Boolean; var ExitProg : Boolean);
+  begin
+    {
+      Handle events: keyboard, mouse, sensors, joysticks, system, etc.
+
+      - aEvent: SDL event, each frame this method is called for each event in
+        the queue.
+      - Handled: If true, aEvent it's already handled.
+      - ExitProg: If set to True, then Exit the program.
+
+      Parent's method handles some Window and Exit/Quit events. Some keys are
+        handled too by default:
+
+      - ESC: Exits the program.
+      - F11: Toggle framerate display.
+      - While text editing: All characters and simbols are handled.
+      It's recommended call inherited method first. But you can call it last
+        if you want handle manually them.
+    }
+
+    inherited;
+    if ExitProg or Handled then Exit;
+
+    {
+      You can see full list in SDL_events.inc of SDL3.
+    }
+
+    case aEvent.type_ of
+      SDL_EVENT_KEY_DOWN:
+      begin
+        case aEvent.key.key of
+          SDLK_A..SDLK_Z:
+          begin
+            ExitProg := True;
+            Handled := True;
+          end;
+          otherwise
+            ;
+        end;
+      end;
+      otherwise
+        ;
+    end;
+  end;
+
+  { Main program }
+
+var
+  CTCEng : cSDL3Eng;
+
+begin
+  CTCEng := cSDL3Eng.Create('CHXSDL3Engine Test', RenderW, RenderH, 0,
+    kFullScreen, kRDriver);
+  try
+    // With `AutoInt = False` (7th parameter)
+    // We can change configuration, call Init and then Run the engine...
+    // (Scale is actually constructor's 4th parameter...)
+    CTCEng.Config.Scale := kWinScale;
+    CTCEng.Init;
+    CTCEng.Run;
+  finally
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, 'Program finished.');
+    if SDL_GetError <> '' then
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, SDL_GetError);
+    if SDL_GetNumAllocations >= 0 then
+       SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+         'Mem allocations not freed: %d', [SDL_GetNumAllocations]); 
+    CTCEng.Free;
+  end;
+end.
+{
+  This source is free software; you can redistribute it and/or modify it under
+  the terms of the GNU General Public License as published by the Free
+  Software Foundation; either version 3 of the License, or (at your option)
+  any later version.
+
+  This code is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+  details.
+
+  A copy of the GNU General Public License is available on the World Wide Web
+  at <http://www.gnu.org/copyleft/gpl.html>. You can also obtain it by writing
+  to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+  MA 02111-1307, USA.
+}
