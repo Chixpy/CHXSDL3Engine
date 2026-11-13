@@ -52,7 +52,17 @@ var
   CX, CY : CFloat; // Center of the rectangle
   W2, H2 : CFloat; // Half sides
   OffSetX, OffSetY : CFloat; // Offset of the center of the arcs
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -63,11 +73,23 @@ begin
   if (W < 2) or (H < 2) then
     Exit(SPRectFilled(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   // Radius check.
   CurrX := Abs(R);
   if CurrX < 1 then Exit(SPRectBorder(X, Y, W, H));
 
   // Checking if radius is too big and setting integer R.
+  if Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5)
+    > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
   CurrX := Floor(Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5));
 
   W2 := (W - 1) * 0.5; H2 := (H - 1) * 0.5;
@@ -121,7 +143,17 @@ var
   CX, CY : CFloat; // Center of the rectangle
   W2, H2 : CFloat; // Half sides
   OffSetX, OffSetY : CFloat; // Offset of the center of the arcs
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -132,11 +164,23 @@ begin
   if (W < 2) or (H < 2) then
     Exit(SPRectFilled(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   // Radius check.
   CurrX := Abs(R);
   if CurrX < 1 then Exit(SPRectFilled(X, Y, W, H));
 
   // Checking if radius is too big and setting integer R.
+  if Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5)
+    > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
   CurrX := Floor(Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5));
 
   W2 := (W - 1) * 0.5; H2 := (H - 1) * 0.5;
@@ -220,7 +264,17 @@ var
   CX, CY : CFloat; // Center of the rectangle
   W2, H2 : CFloat; // Half sides
   OffSetX, OffSetY : CFloat; // Offset of the center of the arcs
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -231,11 +285,23 @@ begin
   if (W < 3) or (H < 3) then
     Exit(SPRectFillOnly(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   // Radius check.
   CurrX := Abs(R);
   if CurrX < 1 then Exit(SPRectFillOnly(X, Y, W, H));
 
   // Checking if radius is too big and setting integer R.
+  if Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5)
+    > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
   CurrX := Floor(Min(Min(CurrX, (H - 1) * 0.5), (W - 1) * 0.5));
 
   W2 := (W - 1) * 0.5; H2 := (H - 1) * 0.5;
@@ -364,7 +430,17 @@ var
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer; // Algorithm variables
   CY, CX: CFloat; // Center of the Rect
   RectX, RectY: CFloat; // Half of Rects borders
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -375,6 +451,11 @@ begin
   if (W < 2) or (H < 2) then
     Exit(SPRectFilled(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   RectX := Abs(RX); RectY := Abs(RY); // Temp usage for absolute radii
   // Not rounded corners
   if (RectX < 1) or (RectY < 1) then
@@ -383,6 +464,13 @@ begin
   // Checking maximum posible radii
   RX := Min(RectX, W * 0.5);
   RY := Min(RectY, H * 0.5);
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
 
   // Integer radii for Logical Presentation
   RX2 := Floor(RX); RY2 := Floor(RY);
@@ -464,7 +552,17 @@ var
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer; // Algorithm variables
   CY, CX: CFloat; // Center of the Rect
   RectX, RectY: CFloat; // Half of Rects borders
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -475,6 +573,11 @@ begin
   if (W < 2) or (H < 2) then
     Exit(SPRectFilled(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   // Not rounded corners
   RectX := Abs(RX); RectY := Abs(RY); // Temp usage for absolute radii
   if (RectX < 1) or (RectY < 1) then
@@ -483,6 +586,13 @@ begin
   // Checking maximum posible radii
   RX := Min(RectX, W * 0.5);
   RY := Min(RectY, H * 0.5);
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
 
   // Integer radii for Logical Presentation
   RX2 := Floor(RX); RY2 := Floor(RY);
@@ -559,7 +669,17 @@ var
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer; // Algorithm variables
   CY, CX: CFloat; // Center of the Rect
   RectX, RectY: CFloat; // Half of Rects borders
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(W) and CHXSDL3IsFinite(H)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, W, H, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Normalizing rectangle coordinates
   if W < 0 then
     begin X += W - 1; W := -W + 2; end;
@@ -570,6 +690,11 @@ begin
   if (W < 2) or (H < 2) then
     Exit(SPRectFilled(X, Y, W, H));
 
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + W < MinX) or (X > MaxX)
+      or (Y + H < MinY) or (Y > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
   // Not rounded corners
   RectX := Abs(RX); RectY := Abs(RY); // Temp usage for absolute radii
   if (RectX < 1) or (RectY < 1) then
@@ -578,6 +703,13 @@ begin
   // Checking maximum posible radii
   RX := Min(RectX, W * 0.5);
   RY := Min(RectY, H * 0.5);
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius is too big for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
 
   // Integer radii for Logical Presentation
   RX2 := Floor(RX); RY2 := Floor(RY);

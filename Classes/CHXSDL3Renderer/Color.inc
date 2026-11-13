@@ -16,26 +16,37 @@ function cCHXSDL3Renderer.SetDrawColor(const R, G, B, A: CFloat): Boolean;
 var
   PrevR, PrevG, PrevB, PrevA: CFloat;
 begin
-  Result := SDL_GetRenderDrawColorFloat(SDLRenderer,
-    @PrevR, @PrevG, @PrevB, @PrevA);
+  if not SDL_GetRenderDrawColorFloat(SDLRenderer,
+    @PrevR, @PrevG, @PrevB, @PrevA) then
+    Exit(False);
 
   if SameValue(PrevR, R) and SameValue(PrevG, G) and SameValue(PrevB, B)
     and SameValue(PrevA, A) then
-    Exit;
+  begin
+    // Keep the cache coherent even when no SDL call is needed. This is
+    // important for PushDrawColor with the same color as the current one.
+    if Length(ColorStack) > 0 then
+      ColorStack[High(ColorStack)] := SDLFColor(R, G, B, A);
+    Exit(True);
+  end;
 
+  Result := True;
   if (PrevA >= 1) and (A < 1) then
-    Result := Result
-      and SDL_SetRenderDrawBlendMode(SDLRenderer, PrevBlendMode)
+    Result := SDL_SetRenderDrawBlendMode(SDLRenderer, PrevBlendMode)
   else if (PrevA < 1) and (A >= 1) then
-    Result := Result
-      and SDL_GetRenderDrawBlendMode(SDLRenderer, @PrevBlendMode)
+    Result := SDL_GetRenderDrawBlendMode(SDLRenderer, @PrevBlendMode)
       and SDL_SetRenderDrawBlendMode(SDLRenderer, SDL_BLENDMODE_NONE);
 
-  ColorStack[High(ColorStack)] := SDLFColor(R, G, B, A);
-
-  // Try to set color anyways if something before fails
-  Result := SDL_SetRenderDrawColorFloat(SDLRenderer, R, G, B, A)
-    and Result;
+  // Try to set the color even if a blend mode operation failed.
+  if SDL_SetRenderDrawColorFloat(SDLRenderer, R, G, B, A) then
+  begin
+    // The color is now the actual SDL state, keep the cache coherent even
+    // if a previous blend mode operation failed.
+    if Length(ColorStack) > 0 then
+      ColorStack[High(ColorStack)] := SDLFColor(R, G, B, A);
+  end
+  else
+    Result := False;
 end;
 
 function cCHXSDL3Renderer.SetDrawColor(const Grey, A: CFloat): Boolean;
@@ -70,9 +81,14 @@ begin
 end;
 
 function cCHXSDL3Renderer.PushDrawColor(const R, G, B, A: CFloat): Boolean;
+var
+  OldLength : CInt;
 begin
-  SetLength(ColorStack, Length(ColorStack) + 1);
+  OldLength := Length(ColorStack);
+  SetLength(ColorStack, OldLength + 1);
   Result := SetDrawColor(R, G, B, A);
+  if not Result then
+    SetLength(ColorStack, OldLength);
 end;
 
 function cCHXSDL3Renderer.PushDrawColor(const Grey, A: CFloat): Boolean;
@@ -82,16 +98,23 @@ end;
 
 // PopDrawColor
 
-function cCHXSDL3Renderer.PopDrawColor(const PopCount: Integer) : Boolean;
+function cCHXSDL3Renderer.PopDrawColor(const PopCount: CInt) : Boolean;
 var
-  Size: Integer;
+  Size : CInt;
+  OldStack : TSDLFColorDynArray;
 begin
   if (PopCount > 0) and (Length(ColorStack) > PopCount) then
     Size := Length(ColorStack) - PopCount
   else
     Size := 1;
+
+  // Keep the previous stack so a failed color restore doesn't lose it.
+  OldStack := Copy(ColorStack, 0, Length(ColorStack));
   SetLength(ColorStack, Size);
+
   Result := SetDrawColor(ColorStack[High(ColorStack)]);
+  if not Result then
+    ColorStack := OldStack;
 end;
 {< This source is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free

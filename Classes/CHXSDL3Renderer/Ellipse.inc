@@ -28,7 +28,7 @@
 }
 
 procedure cCHXSDL3Renderer.EllipseVertices(var PArr: TSDLFPointDynArray;
-  const X, Y, RX, RY: CFloat; QuadPoints: Integer);
+  const X, Y, RX, RY: CFloat; QuadPoints : CInt);
 const
   // ToDo: Make these as cCHXSDL3Renderer properties
   kMinTEllipse = 0; // Additional vertices for each quadrant of the ellipse
@@ -38,8 +38,22 @@ var
   Angle, dAng, aSin, aCos: CFloat;
   i, k: Integer;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    SetLength(PArr, 0);
+    Exit;
+  end;
+
   if QuadPoints < kMinTEllipse then
-    QuadPoints := Round(kTEllipseRatio * SqRt(Abs(Min(RX, RY))));
+  begin
+    if Abs(Min(RX, RY)) > 1e9 then
+      QuadPoints := kMaxTEllipse
+    else
+      QuadPoints := Round(kTEllipseRatio * SqRt(Abs(Min(RX, RY))));
+  end;
 
   if QuadPoints < kMinTEllipse then QuadPoints := kMinTEllipse
   else if QuadPoints > kMaxTEllipse then QuadPoints := kMaxTEllipse;
@@ -78,7 +92,7 @@ end;
 }
 
 function cCHXSDL3Renderer.Ellipse(const X, Y, RX, RY: CFloat;
-  const BorderC, FillC: TSDL_FColor; const QuadPoints: Integer): Boolean;
+  const BorderC, FillC: TSDL_FColor; const QuadPoints : CInt): Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -102,23 +116,28 @@ begin
 end;
 
 function cCHXSDL3Renderer.EllipseBorder(const X, Y, RX, RY: CFloat;
-  const QuadPoints: Integer): Boolean;
+  const QuadPoints : CInt): Boolean;
 var
   PArr: TSDLFPointDynArray;
 begin
   EllipseVertices(PArr, X, Y, RX, RY, QuadPoints);
+  if Length(PArr) = 0 then
+    Exit(False); // EllipseVertices already set the error.
+
   Result := PolygonBorder(PArr);
 end;
 
 function cCHXSDL3Renderer.EllipseFilled(const X, Y, RX, RY: CFloat;
-  const QuadPoints: Integer): Boolean;
+  const QuadPoints : CInt): Boolean;
 var
   PArr: TSDLFPointDynArray;
-  Indices: Array of Byte;
+  Indices: Array of Cardinal;
   FColor: TSDL_FColor;
-  i, j: Integer;
+  i, j: CInt;
 begin
   EllipseVertices(PArr, X + 0.5, Y + 0.5, RX + 0.5, RY + 0.5, QuadPoints);
+  if Length(PArr) < 3 then
+    Exit(False);
 
   SetLength(Indices, Length(PArr) * 3);
 
@@ -129,25 +148,26 @@ begin
   for i := 0 to (High(PArr) - 2) do
   begin
     j := i * 3;
-    Indices[j] := High(PArr);
-    Indices[j + 1] := i;
-    Indices[j + 2] := i + 1;
+    Indices[j] := Cardinal(High(PArr));
+    Indices[j + 1] := Cardinal(i);
+    Indices[j + 2] := Cardinal(i + 1);
   end;
   j := (High(PArr) - 1) * 3;
-  Indices[j] := High(PArr);
-  Indices[j + 1] := High(PArr) - 1;
-  Indices[j + 2] := Low(PArr);
+  Indices[j] := Cardinal(High(PArr));
+  Indices[j + 1] := Cardinal(High(PArr) - 1);
+  Indices[j + 2] := Cardinal(Low(PArr));
 
   Result := GetDrawColor(FColor)
     and SDL_RenderGeometryRaw(SDLRenderer, nil,
       @PArr[0], SizeOf(TSDL_FPoint), // Puntos
       @FColor, 0, // Colores
       nil, 0, // uv
-      Length(PArr), @Indices[0], Length(Indices), 1); // Indices
+      CInt(Length(PArr)), @Indices[0], CInt(Length(Indices)),
+      SizeOf(Cardinal)); // Indices
 end;
 
 function cCHXSDL3Renderer.EllipseFillOnly(const X, Y: CFloat; RX, RY: CFloat;
-  const QuadPoints: Integer): Boolean;
+  const QuadPoints : CInt): Boolean;
 begin
   RX := Abs(RX); RY := Abs(RY);
   if (RX <= 1) or (RY <= 1) then
@@ -197,8 +217,31 @@ var
   //   instead 31bits of (Long) Integer.
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer;
   FracRX, FracRY: CFloat;
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   RX := Abs(RX); RY := Abs(RY);
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + RX < MinX) or (X - RX > MaxX)
+      or (Y + RY < MinY) or (Y - RY > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f, %f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      RX, RY, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   RX2 := Floor(RX); RY2 := Floor(RY);
   FracRX := RX - RX2; FracRY := RY - RY2;
 
@@ -277,8 +320,31 @@ var
   //   instead 31bits of (Long) Integer.
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer;
   FracRX, FracRY: CFloat;
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   RX := Abs(RX); RY := Abs(RY);
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + RX < MinX) or (X - RX > MaxX)
+      or (Y + RY < MinY) or (Y - RY > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f, %f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      RX, RY, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   RX2 := Floor(RX); RY2 := Floor(RY);
   FracRX := RX - RX2; FracRY := RY - RY2;
 
@@ -355,8 +421,31 @@ var
   //   instead 31bits of (Long) Integer.
   CurrX, CurrY, dX, dY, err, e2, RX2, RY2: Integer;
   FracRX, FracRY: CFloat;
+  MinX, MinY, MaxX, MaxY: CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(RX) and CHXSDL3IsFinite(RY)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, RX or RY',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   RX := Abs(RX); RY := Abs(RY);
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + RX < MinX) or (X - RX > MaxX)
+      or (Y + RY < MinY) or (Y - RY > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if (RX > MaxRasterIterations) or (RY > MaxRasterIterations) then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f, %f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      RX, RY, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   RX2 := Floor(RX); RY2 := Floor(RY);
   FracRX := RX - RX2; FracRY := RY - RY2;
 
@@ -680,14 +769,14 @@ end;
 }
 
 function cCHXSDL3Renderer.EllipseInRect(const aRect: TSDL_FRect;
-  const BorderC, FillC: TSDL_FColor; const QuadPoints: Integer): Boolean;
+  const BorderC, FillC: TSDL_FColor; const QuadPoints : CInt): Boolean;
 begin
   Result := EllipseInRect(aRect.X, aRect.Y, aRect.W, aRect.H, BorderC,
     FillC, QuadPoints);
 end;
 
 function cCHXSDL3Renderer.EllipseInRect(const X, Y, W, H: CFloat;
- const BorderC, FillC: TSDL_FColor; const QuadPoints: Integer): Boolean;
+ const BorderC, FillC: TSDL_FColor; const QuadPoints : CInt): Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -711,14 +800,14 @@ begin
 end;
 
 function cCHXSDL3Renderer.EllipseInRectBorder(const aRect: TSDL_FRect;
-  const QuadPoints: Integer) : Boolean;
+  const QuadPoints : CInt) : Boolean;
 begin
   Result := EllipseInRectBorder(aRect.X, aRect.Y, aRect.W, aRect.H,
     QuadPoints);
 end;
 
 function cCHXSDL3Renderer.EllipseInRectBorder(X, Y, W, H: CFloat;
-  const QuadPoints: Integer) : Boolean;
+  const QuadPoints : CInt) : Boolean;
 { With integers there are algorithms to rasterize this ellipses.
 
   With floats... we can call EllipseBorder with tweaked parameters.
@@ -734,14 +823,14 @@ begin
 end;
 
 function cCHXSDL3Renderer.EllipseInRectFilled(const aRect: TSDL_FRect;
-  const QuadPoints: Integer) : Boolean;
+  const QuadPoints : CInt) : Boolean;
 begin
   Result := EllipseInRectFilled(aRect.X, aRect.Y, aRect.W, aRect.H,
     QuadPoints);
 end;
 
 function cCHXSDL3Renderer.EllipseInRectFilled(X, Y, W, H: CFloat;
-  const QuadPoints: Integer): Boolean;
+  const QuadPoints : CInt): Boolean;
 { With integers there are algorithms to rasterize this ellipses.
 
   With floats... we can call EllipseFilled with tweaked parameters.
@@ -757,14 +846,14 @@ begin
 end;
 
 function cCHXSDL3Renderer.EllipseInRectFillOnly(const aRect: TSDL_FRect;
-  const QuadPoints: Integer) : Boolean;
+  const QuadPoints : CInt) : Boolean;
 begin
   Result := EllipseInRectFillOnly(aRect.X, aRect.Y, aRect.W, aRect.H,
     QuadPoints);
 end;
 
 function cCHXSDL3Renderer.EllipseInRectFillOnly(X, Y, W, H: CFloat;
-  const QuadPoints: Integer): Boolean;
+  const QuadPoints : CInt): Boolean;
 { With integers there are algorithms to rasterize this ellipses.
 
   With floats... we can call EllipseFillOnly with tweaked parameters.

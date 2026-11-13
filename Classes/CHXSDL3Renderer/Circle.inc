@@ -14,21 +14,39 @@
 }
 
 procedure cCHXSDL3Renderer.CircleVertices(var PArr : TSDLFPointDynArray;
-  const X, Y, R : CFloat; OctPoints : Integer);
+  const X, Y, R : CFloat; OctPoints : CInt);
 var
   Angle, dAng, aSin, aCos : CFloat;
   i, k : Integer;
 begin
   // ToDo: Use only 4 points for R < 1|2|3?
-  
+
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    SetLength(PArr, 0);
+    Exit;
+  end;
+
   // Maybe check pixel size on this cases
   if (OctPoints < MinOctCircleVertices) then
-    OctPoints := Round(AutoOctCircleVerticesRatio * SqRt(Abs(R)));
+  begin
+    if Abs(R) > 1e9 then
+      OctPoints := MaxOctCircleVertices
+    else
+      OctPoints := Round(AutoOctCircleVerticesRatio * SqRt(Abs(R)));
+  end;
 
   if OctPoints < MinOctCircleVertices then
     OctPoints := MinOctCircleVertices
   else if OctPoints > MaxOctCircleVertices then
     OctPoints := MaxOctCircleVertices;
+
+  // Defensive: a misconfigured maximum could leave a negative value.
+  if OctPoints < 0 then
+    OctPoints := 0;
 
   SetLength(PArr, (OctPoints + 1) * 8);
 
@@ -71,7 +89,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Circle(const X, Y, R : CFloat;
-  const BorderC, FillC : TSDL_FColor; const OctPoints : Integer) : Boolean;
+  const BorderC, FillC : TSDL_FColor; const OctPoints : CInt) : Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -96,24 +114,29 @@ end;
 
 
 function cCHXSDL3Renderer.CircleBorder(const X, Y, R : CFloat;
-  const OctPoints : Integer) : Boolean;
+  const OctPoints : CInt) : Boolean;
 var
   PArr : TSDLFPointDynArray;
 begin
   CircleVertices(PArr, X, Y, R, OctPoints);
+  if Length(PArr) = 0 then
+    Exit(False); // CircleVertices already set the error.
+
   Result := PolygonBorder(PArr);
 end;
 
 function cCHXSDL3Renderer.CircleFilledRaw(const X, Y, R : CFloat;
-  const OctPoints : Integer) : Boolean;
+  const OctPoints : CInt) : Boolean;
 var
   PArr : TSDLFPointDynArray;
-  Indices : Array of Byte;
+  Indices : Array of Cardinal;
   FColor : TSDL_FColor;
-  i, j : Integer;
+  i, j : CInt;
 begin
   // Adding border size
   CircleVertices(PArr, X, Y, R, OctPoints);
+  if Length(PArr) < 3 then
+    Exit(False);
 
   SetLength(Indices, Length(PArr) * 3);
 
@@ -124,31 +147,32 @@ begin
   for i := 0 to (High(PArr) - 2) do
   begin
     j := i * 3;
-    Indices[j] := High(PArr);
-    Indices[j + 1] := i;
-    Indices[j + 2] := i + 1;
+    Indices[j] := Cardinal(High(PArr));
+    Indices[j + 1] := Cardinal(i);
+    Indices[j + 2] := Cardinal(i + 1);
   end;
   j := (High(PArr) - 1) * 3;
-  Indices[j] := High(PArr);
-  Indices[j + 1] := High(PArr) - 1;
-  Indices[j + 2] := Low(PArr);
+  Indices[j] := Cardinal(High(PArr));
+  Indices[j + 1] := Cardinal(High(PArr) - 1);
+  Indices[j + 2] := Cardinal(Low(PArr));
 
   Result := GetDrawColor(FColor)
     and SDL_RenderGeometryRaw(SDLRenderer, nil,
       @PArr[0], SizeOf(TSDL_FPoint), // Puntos
       @FColor, 0, // Colores
       nil, 0, // uv
-      Length(PArr), @Indices[0], Length(Indices), 1); // Indices
+      CInt(Length(PArr)), @Indices[0], CInt(Length(Indices)),
+      SizeOf(Cardinal)); // Indices
 end;
 
 function cCHXSDL3Renderer.CircleFilled(const X, Y, R : CFloat;
-  const OctPoints : Integer) : Boolean;
+  const OctPoints : CInt) : Boolean;
 begin
   Result := CircleFilledRaw(X + 0.5, Y + 0.5, R + 0.5, OctPoints);
 end;
 
 function cCHXSDL3Renderer.CircleFillOnly(const X, Y, R : CFloat;
-  const OctPoints : Integer) : Boolean;
+  const OctPoints : CInt) : Boolean;
 begin
   Result := CircleFilledRaw(X + 0.5, Y + 0.5, R - 0.5, OctPoints);
 end;
@@ -191,10 +215,33 @@ function cCHXSDL3Renderer.SPCircleBorder(const X, Y : CFloat; R : CFloat)
 var
   t1, t2, CurrX, CurrY : Integer;
   FracR : CFloat; // Subpixel Radius Offset.
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   R := Abs(R);
   // ToDo: Draw a rect
   if R < 1 then Exit(Point(X, Y));
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + R < MinX) or (X - R > MaxX)
+      or (Y + R < MinY) or (Y - R > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if R > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      R, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   CurrX := Floor(R);
   FracR := R - CurrX;
 
@@ -245,9 +292,32 @@ function cCHXSDL3Renderer.SPCircleFilled(const X, Y : CFloat; R : CFloat)
 var
   t1, t2, CurrX, CurrY : Integer;
   FracR : CFloat; // Subpixel Radius Offset.
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   R := Abs(R);
   if R < 1 then Exit(Point(X, Y));
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + R < MinX) or (X - R > MaxX)
+      or (Y + R < MinY) or (Y - R > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if R > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      R, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   CurrX := Floor(R);
   FracR := R - CurrX;
 
@@ -305,9 +375,32 @@ var
   t1, t2, CurrX, CurrY : Integer;
   DrawLine : Boolean;
   FracR : CFloat; // Subpixel Radius Offset.
+  MinX, MinY, MaxX, MaxY : CFloat;
 begin
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(R)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y or R',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   R := Abs(R);
   if R < 1 then Exit(True); // Nothing to fill
+
+  if GetRenderBounds(MinX, MinY, MaxX, MaxY)
+    and ((X + R < MinX) or (X - R > MaxX)
+      or (Y + R < MinY) or (Y - R > MaxY)) then
+    Exit(True); // Completely outside the visible area.
+
+  if R > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Radius(%f) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      R, MaxRasterIterations]);
+    Exit(False);
+  end;
+
   CurrX := Floor(R);
   FracR := R - CurrX;
 

@@ -15,7 +15,7 @@
 }
 
 function cCHXSDL3Renderer.QuadUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -39,9 +39,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.Quad(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -81,15 +81,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.QuadBorderUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := PolygonBorderUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.QuadBorder(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -120,15 +120,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.QuadFilledUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := PolygonFilledUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.QuadFilled(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -160,15 +160,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.QuadFillOnlyUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := PolygonFillOnlyUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.QuadFillOnly(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer = 0) : Boolean;
+  const idxFirst : CInt = 0) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -204,7 +204,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SPQuadUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -228,9 +228,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPQuad(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -270,15 +270,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPQuadBorderUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := SPPolygonBorderUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.SPQuadBorder(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -309,15 +309,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPQuadFilledUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := SPPolygonFilledUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.SPQuadFilled(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -349,15 +349,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPQuadFillOnlyUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, 4);
 end;
 
 function cCHXSDL3Renderer.SPQuadFillOnly(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer = 0) : Boolean;
+  const idxFirst : CInt = 0) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 4;
   IsValidArrayRange(Length(PArr), idxFirst, Count,

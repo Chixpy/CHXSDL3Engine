@@ -107,7 +107,7 @@ end;
 }
 
 function cCHXSDL3Renderer.LinesUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 { Notes about SDL_RenderLines:
 
   - It doesn't draw anything with `Count <= 0`.
@@ -121,7 +121,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Lines(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -141,7 +141,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SPLinesUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 { Notes about SDL_RenderLines:
 
   - It doesn't draw anything with `Count <= 0`.
@@ -154,7 +154,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPLines(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -243,7 +243,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SegmentsUnsafe(const SegArr : TSDLFSegmentDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 var
   i : Integer;
 begin
@@ -253,7 +253,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SegmentsUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst, PairCount : Integer) : Boolean;
+  const idxFirst, PairCount : CInt) : Boolean;
 var
   i : Integer;
 begin
@@ -264,7 +264,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Segments(const SegArr : TSDLFSegmentDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(SegArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -275,7 +275,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Segments(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; PairCount : Integer) : Boolean;
+  const idxFirst : CInt; PairCount : CInt) : Boolean;
 var
   MaxCount : integer;
 begin
@@ -317,17 +317,6 @@ begin
   end;
 
   if PairCount <= 0 then Exit;
-
-  if Odd(PairCount) then
-  begin
-    SDL_SetError('%s(%s) %s: Odd number of points (%d)',
-      [PAnsiChar({$I %FILE%}), {$I %LINE%}, {$I %CURRENTROUTINE%},
-      PairCount]);
-    Dec(PairCount);
-
-    Result := False;
-    if PairCount <= 0 then Exit;
-  end;
 
   Result := SegmentsUnsafe(PArr, idxFirst, PairCount) and Result;
 end;

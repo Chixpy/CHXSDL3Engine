@@ -23,7 +23,7 @@
 }
 
 function cCHXSDL3Renderer.TriangleUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -47,9 +47,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.Triangle(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -88,15 +88,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.TriangleBorderUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 begin
   Result := PolygonBorderUnsafe(PArr, idxFirst, 3);
 end;
 
 function cCHXSDL3Renderer.TriangleBorder(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -129,7 +129,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.TriangleFilledUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
   FColor : TSDL_FColor;
   TempPArr : TSDLFPointDynArray;
@@ -167,9 +167,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.TriangleFilled(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -202,7 +202,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.TriangleFillOnlyUnsafe(
-  const PArr : TSDLFPointDynArray; const idxFirst : Integer) : Boolean;
+  const PArr : TSDLFPointDynArray; const idxFirst : CInt) : Boolean;
 var
   FColor : TSDL_FColor;
   TempPArr : TSDLFPointDynArray;
@@ -240,9 +240,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.TriangleFillOnly(const PArr : TSDLFPointDynArray;
-  const idxFirst: Integer): Boolean;
+  const idxFirst : CInt): Boolean;
 var
-  Count: Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -279,7 +279,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SPTriangleUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -303,9 +303,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangle(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; const BorderC, FillC : TSDL_FColor) : Boolean;
+  const idxFirst : CInt; const BorderC, FillC : TSDL_FColor) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -344,15 +344,15 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangleBorderUnsafe(
-  const PArr : TSDLFPointDynArray; const idxFirst : Integer) : Boolean;
+  const PArr : TSDLFPointDynArray; const idxFirst : CInt) : Boolean;
 begin
   Result := SPPolygonBorderUnsafe(PArr, idxFirst, 3);
 end;
 
 function cCHXSDL3Renderer.SPTriangleBorder(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -385,7 +385,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangleFilledUnsafe(
-  const PArr : TSDLFPointDynArray; const idxFirst : Integer) : Boolean;
+  const PArr : TSDLFPointDynArray; const idxFirst : CInt) : Boolean;
 begin
   //  ToDo: Create an optimized method for triangles
   {
@@ -398,9 +398,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangleFilled(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer) : Boolean;
+  const idxFirst : CInt) : Boolean;
 var
-  Count : Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -433,7 +433,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangleFillOnlyUnsafe(
-  const PArr : TSDLFPointDynArray; const idxFirst : Integer) : Boolean;
+  const PArr : TSDLFPointDynArray; const idxFirst : CInt) : Boolean;
 begin
   //  ToDo: Create an optimized method for triangles
   {
@@ -446,9 +446,9 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPTriangleFillOnly(const PArr : TSDLFPointDynArray;
-  const idxFirst: Integer): Boolean;
+  const idxFirst : CInt): Boolean;
 var
-  Count: Integer;
+  Count : CInt;
 begin
   Count := 3;
   IsValidArrayRange(Length(PArr), idxFirst, Count,

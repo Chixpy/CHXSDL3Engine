@@ -37,7 +37,7 @@ BACKUP_DIR=""
 
 # --- HELPERS ---
 die() {
-    echo "Error: $*" >&2
+    echo "❌ Error: $*" >&2
     exit 1
 }
 
@@ -70,8 +70,8 @@ fi
 if [ ! -f "$LAST_CHANGES" ]; then
     if [ -f "$LAST_CHANGES_EXAMPLE" ]; then
         cp "$LAST_CHANGES_EXAMPLE" "$LAST_CHANGES"
-        echo "Created $LAST_CHANGES from $LAST_CHANGES_EXAMPLE."
-        echo "Write the changes for this commit and run the script again."
+        echo "📥 Created $LAST_CHANGES from $LAST_CHANGES_EXAMPLE."
+        echo "📝 Write the changes for this commit and run the script again."
         exit 1
     fi
 
@@ -175,21 +175,21 @@ TEMP_LOG=""
     done
 } > "$INDEX"
 
-echo "Updated $CHANGELOG and $INDEX."
+echo "✅ Updated $CHANGELOG and $INDEX."
 
 # --- 7. COMMIT ---
 git add .
 
 if git commit -F "$TEMP_MSG"; then
-    echo "Commit created successfully."
+    echo "✅ Commit created successfully."
     > "$LAST_CHANGES"
     echo "Cleared $LAST_CHANGES."
 else
-    echo "Git commit failed. Restoring changelog files." >&2
+    echo "❌ Git commit failed. Restoring changelog files." >&2
     restore
     exit 1
 fi
 
 echo
-echo "If you are in a base repository, run: git push"
-echo "If you are in a submodule, run: git push origin [master|main]"
+echo "💡 If you are in a base repository, run: git push"
+echo "💡 If you are in a submodule, run: git push origin [master|main]"

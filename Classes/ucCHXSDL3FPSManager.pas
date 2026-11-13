@@ -116,7 +116,10 @@ begin
 
   if Result > 0 then
   begin
-    SDL_Delay(Result);
+    if Result > High(CUInt32) then
+      SDL_Delay(High(CUInt32))
+    else
+      SDL_Delay(CUInt32(Result));
     CurrTick := SDL_GetTicks;
     FLastFullTime := CurrTick - LastTick;
   end

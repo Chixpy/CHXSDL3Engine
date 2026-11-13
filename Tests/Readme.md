@@ -17,3 +17,13 @@ The executable file will be created at `bin` directory.
 
 The SDL3 library must be installed or in the same directory as the program
 to run it.
+
+## Non-interactive smoke test
+
+`SmokePrimitives.pas` checks error handling and safety limits of
+`cCHXSDL3Renderer` without opening an interactive loop. On headless systems
+it can use the SDL dummy video driver with the software renderer:
+
+> `SDL_VIDEODRIVER=dummy ./bin/SmokePrimitives`
+
+It returns exit code `0` when all checks pass.

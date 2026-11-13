@@ -172,13 +172,13 @@ end;
 *)
 
 function cCHXSDL3Renderer.RectsBorderUnsafe(const RArr: TSDLFRectDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 begin
   Result := SDL_RenderRects(SDLRenderer, @RArr[idxFirst], Count)
 end;
 
 function cCHXSDL3Renderer.RectsBorder(const RArr: TSDLFRectDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(RArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -188,13 +188,13 @@ begin
 end;
 
 function cCHXSDL3Renderer.RectsFilledUnsafe(const RArr: TSDLFRectDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 begin
   Result := SDL_RenderFillRects(SDLRenderer, @RArr[idxFirst], Count)
 end;
 
 function cCHXSDL3Renderer.RectsFilled(const RArr: TSDLFRectDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(RArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});

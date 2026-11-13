@@ -56,7 +56,7 @@ end;
 }
 
 function cCHXSDL3Renderer.PointsUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 { Notes about SDL_RenderPoints:
 
   - It doesn't draw anything with `Count <= 0`.
@@ -69,7 +69,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Points(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -84,7 +84,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SPPointsUnsafe(const PArr : TSDLFPointDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 { Notes about SDL_RenderPoints:
 
   - It doesn't draw anything with `Count <= 0`.
@@ -97,7 +97,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPoints(const PArr : TSDLFPointDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -112,7 +112,7 @@ end;
 }
 
 function cCHXSDL3Renderer.FPPointsUnsafe(const PArr : TSDLPointDynArray;
-  const idxFirst, Count : Integer) : Boolean;
+  const idxFirst, Count : CInt) : Boolean;
 var
   TmpArr : TSDLFPointDynArray;
   i : Integer;
@@ -128,7 +128,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.FPPoints(const PArr : TSDLPointDynArray;
-  const idxFirst : Integer; Count : Integer) : Boolean;
+  const idxFirst : CInt; Count : CInt) : Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});

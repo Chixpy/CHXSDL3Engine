@@ -17,7 +17,7 @@
 }
 
 function cCHXSDL3Renderer.PolygonUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer; const BorderC, FillC: TSDL_FColor): Boolean;
+  const idxFirst, Count : CInt; const BorderC, FillC: TSDL_FColor): Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -41,7 +41,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.Polygon(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer; const BorderC, FillC: TSDL_FColor)
+  const idxFirst : CInt; Count : CInt; const BorderC, FillC: TSDL_FColor)
   : Boolean; overload;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -56,10 +56,18 @@ begin
 end;
 
 function cCHXSDL3Renderer.PolygonBorderUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 var
   PArr2: TSDLFPointDynArray;
 begin
+  if (idxFirst < 0) or (Count <= 0)
+    or (Int64(idxFirst) + Count > Length(PArr)) then
+  begin
+    SDL_SetError('%s(%s) %s: Invalid polygon range',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Closing the polygon
   PArr2 := Copy(PArr, idxFirst, Count);
   SetLength(PArr2, Length(PArr2) + 1);
@@ -68,7 +76,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.PolygonBorder(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -76,22 +84,22 @@ begin
 
   case Count of
   // 0: Exit(True); It can't happen
-  1: Result := Point(PArr[idxFirst]);
-  2: Result := Lines(PArr, idxFirst, Count);
+  1: Result := Point(PArr[idxFirst]) and Result;
+  2: Result := Lines(PArr, idxFirst, Count) and Result;
   otherwise
-    Result := PolygonBorderUnsafe(PArr, idxFirst, Count);
+    Result := PolygonBorderUnsafe(PArr, idxFirst, Count) and Result;
   end;
 end;
 
 function cCHXSDL3Renderer.PolygonFilledUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 begin
   // ToDo: Make a proper PolygonFilledUnsafe
   Result := SPPolygonFilledUnsafe(PArr, idxFirst, Count);
 end;
 
 function cCHXSDL3Renderer.PolygonFilled(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -100,9 +108,9 @@ begin
   case Count of
   // 0: Exit(Result); // It can't happen
 
-  1: Result := SPPoint(PArr[idxFirst]);
+  1: Result := SPPoint(PArr[idxFirst]) and Result;
 
-  2: Result := SPLinesUnsafe(PArr, idxFirst, 2);
+  2: Result := SPLinesUnsafe(PArr, idxFirst, 2) and Result;
 
   // ToDo: Use optimized SPTriangleFilledUnsafe when optimized.
   // 3: Result := SPTriangleFilledUnsafe(PArr, idxFirst);
@@ -111,19 +119,19 @@ begin
   // 4:  Result := SPQuadFilledUnsafe(PArr, idxFirst);
   otherwise
     // ToDo: Make a proper default filled
-    Result := PolygonFilledUnsafe(PArr, idxFirst, Count);
+    Result := PolygonFilledUnsafe(PArr, idxFirst, Count) and Result;
   end;
 end;
 
 function cCHXSDL3Renderer.PolygonFillOnlyUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 begin
   // ToDo: Make a proper Polygon Only Fill
   Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, Count);
 end;
 
 function cCHXSDL3Renderer.PolygonFillOnly(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -139,7 +147,7 @@ begin
   // ToDo: ¿Optimized Quads too?
 
   // ToDo: Make a proper Polygon Only Fill
-  Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, Count);
+  Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, Count) and Result;
 end;
 
 {
@@ -147,7 +155,7 @@ end;
 }
 
 function cCHXSDL3Renderer.SPPolygonUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer; const BorderC, FillC: TSDL_FColor): Boolean;
+  const idxFirst, Count : CInt; const BorderC, FillC: TSDL_FColor): Boolean;
 begin
   Result := PushDrawColor(FillC);
 
@@ -171,7 +179,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPolygon(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer; const BorderC, FillC: TSDL_FColor)
+  const idxFirst : CInt; Count : CInt; const BorderC, FillC: TSDL_FColor)
   : Boolean; overload;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
@@ -186,10 +194,18 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPolygonBorderUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 var
   PArr2: TSDLFPointDynArray;
 begin
+  if (idxFirst < 0) or (Count <= 0)
+    or (Int64(idxFirst) + Count > Length(PArr)) then
+  begin
+    SDL_SetError('%s(%s) %s: Invalid polygon range',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   // Closing the polygon
   PArr2 := Copy(PArr, idxFirst, Count);
   SetLength(PArr2, Length(PArr2) + 1);
@@ -198,7 +214,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPolygonBorder(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -206,15 +222,15 @@ begin
 
   case Count of
   // 0: Exit(True); It can't happen here
-  1: Result := SPPoint(PArr[idxFirst]);
-  2: Result := SPLinesUnsafe(PArr, idxFirst, Count);
+  1: Result := SPPoint(PArr[idxFirst]) and Result;
+  2: Result := SPLinesUnsafe(PArr, idxFirst, Count) and Result;
   otherwise
-    Result := SPPolygonBorderUnsafe(PArr, idxFirst, Count);
+    Result := SPPolygonBorderUnsafe(PArr, idxFirst, Count) and Result;
   end;
 end;
 
 function cCHXSDL3Renderer.SPPolygonFilledUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 { Algorithm rationale & theoretical breakdown:
 
   In the absence of a precise, pre-packaged hardware algorithm, polygon filling
@@ -264,16 +280,36 @@ function cCHXSDL3Renderer.SPPolygonFilledUnsafe(const PArr: TSDLFPointDynArray;
 }
 var
   MinX, MaxX, MinY, MaxY, CurrY, X1, X2, xIntersect: CFloat;
+  ClipMinX, ClipMinY, ClipMaxX, ClipMaxY: CFloat;
   CurrSeg, aIndex: Integer;
+  Iterations: CInt;
+  BoundsOk: Boolean;
   P1, P2: TSDL_FPoint;
   SegList: Array of TCHXSDLFSegment;
   XList: Array of CFloat; // Intersection values
 begin
+  if (idxFirst < 0) or (Count <= 0)
+    or (Int64(idxFirst) + Count > Length(PArr)) then
+  begin
+    SDL_SetError('%s(%s) %s: Invalid polygon range',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
+  if Count = 1 then Exit(SPPoint(PArr[idxFirst]));
+  if Count = 2 then Exit(SPLinesUnsafe(PArr, idxFirst, 2));
+
   Result := True;
   SetLength(SegList, Count);
 
   // Storing edges of the polygon as segments and computing bounding box.
   P2 := PArr[idxFirst];
+  if not (CHXSDL3IsFinite(P2.X) and CHXSDL3IsFinite(P2.Y)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite polygon point',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
   MinX := P2.X; MaxX := P2.X;
   MinY := P2.Y; MaxY := P2.Y;
   SegList[0].P2 := P2; // Close the polygon (1), P1 will be added later.
@@ -283,6 +319,12 @@ begin
   begin
     P1 := P2;
     P2 := PArr[idxFirst + CurrSeg];
+    if not (CHXSDL3IsFinite(P2.X) and CHXSDL3IsFinite(P2.Y)) then
+    begin
+      SDL_SetError('%s(%s) %s: Non-finite polygon point',
+        [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+      Exit(False);
+    end;
     if P2.X < MinX then MinX := P2.X;
     if P2.X > MaxX then MaxX := P2.X;
     if P2.Y < MinY then MinY := P2.Y;
@@ -306,9 +348,36 @@ begin
 
   // ToDo: Not really sure how to handle vertical subpixel
 
+  // Clip scanlines to the visible renderer area.
+  BoundsOk := GetRenderBounds(ClipMinX, ClipMinY, ClipMaxX, ClipMaxY);
+  if BoundsOk then
+  begin
+    if (MaxX < ClipMinX) or (MinX > ClipMaxX)
+      or (MaxY < ClipMinY) or (MinY > ClipMaxY) then
+      Exit(True); // Completely outside.
+    if MinY < ClipMinY then MinY := ClipMinY;
+    if MaxY > ClipMaxY then MaxY := ClipMaxY;
+  end;
+
+  if (MaxY - MinY) > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Polygon is too tall for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
+  Iterations := 0;
   CurrY := MinY;
   while CurrY < MaxY do
   begin
+    Inc(Iterations);
+    if Iterations > MaxRasterIterations then
+    begin
+      SDL_SetError('%s(%s) %s: Too many scanlines',
+        [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+      Exit(False);
+    end;
+
     SetLength(XList, 0); // Removing previous intersections
 
     // Backwards because we will delete not more useful segments
@@ -354,6 +423,12 @@ begin
       X1 := XList[aIndex];
       X2 := XList[aIndex + 1];
 
+      if BoundsOk then
+      begin
+        if X1 < ClipMinX then X1 := ClipMinX;
+        if X2 > ClipMaxX then X2 := ClipMaxX;
+      end;
+
       if X1 <= X2 then
         Result := Line(X1, CurrY, X2, CurrY) and Result;
 
@@ -365,7 +440,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPolygonFilled(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -374,9 +449,9 @@ begin
   case Count of
   // 0: Exit(Result); // It can't happen
 
-  1: Result := SPPoint(PArr[idxFirst]);
+  1: Result := SPPoint(PArr[idxFirst]) and Result;
 
-  2: Result := SPLinesUnsafe(PArr, idxFirst, 2);
+  2: Result := SPLinesUnsafe(PArr, idxFirst, 2) and Result;
 
   // ToDo: Use optimized SPTriangleFilledUnsafe when optimized.
   // 3: Result := SPTriangleFilledUnsafe(PArr, idxFirst);
@@ -384,28 +459,45 @@ begin
   // ToDo: ¿Quads can have an optimized fill too?
   // 4:  Result := SPQuadFilledUnsafe(PArr, idxFirst);
   otherwise
-    Result := SPPolygonFilledUnsafe(PArr, idxFirst, Count);
+    Result := SPPolygonFilledUnsafe(PArr, idxFirst, Count) and Result;
   end;
 end;
 
 function cCHXSDL3Renderer.SPPolygonFillOnlyUnsafe(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 { See `cCHXSDL3Renderer.SPPolygonFilledUnsafe`
 
   Modified to draw only interior without borders and Floats.
 }
 var
   MinX, MaxX, MinY, MaxY, CurrY, X1, X2, xIntersect: CFloat;
+  ClipMinX, ClipMinY, ClipMaxX, ClipMaxY: CFloat;
   CurrSeg, aIndex: Integer;
+  Iterations: CInt;
+  BoundsOk: Boolean;
   P1, P2: TSDL_FPoint;
   SegList: Array of TCHXSDLFSegment;
   XList: Array of CFloat; // Intersection values
 begin
+  if (idxFirst < 0) or (Count < 3)
+    or (Int64(idxFirst) + Count > Length(PArr)) then
+  begin
+    SDL_SetError('%s(%s) %s: Invalid polygon range',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
   Result := True;
   SetLength(SegList, Count);
 
   // Storing edges of the polygon as segments and computing bounding box.
   P2 := PArr[idxFirst];
+  if not (CHXSDL3IsFinite(P2.X) and CHXSDL3IsFinite(P2.Y)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite polygon point',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
   MinX := P2.X; MaxX := P2.X;
   MinY := P2.Y; MaxY := P2.Y;
   SegList[0].P2 := P2; // Close the polygon (1), P1 will be added later.
@@ -415,6 +507,12 @@ begin
   begin
     P1 := P2;
     P2 := PArr[idxFirst + CurrSeg];
+    if not (CHXSDL3IsFinite(P2.X) and CHXSDL3IsFinite(P2.Y)) then
+    begin
+      SDL_SetError('%s(%s) %s: Non-finite polygon point',
+        [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+      Exit(False);
+    end;
     if P2.X < MinX then MinX := P2.X;
     if P2.X > MaxX then MaxX := P2.X;
     if P2.Y < MinY then MinY := P2.Y;
@@ -442,9 +540,36 @@ begin
 
   // ToDo: Not really sure how to handle vertical subpixel
 
+  // Clip scanlines to the visible renderer area.
+  BoundsOk := GetRenderBounds(ClipMinX, ClipMinY, ClipMaxX, ClipMaxY);
+  if BoundsOk then
+  begin
+    if (MaxX < ClipMinX) or (MinX > ClipMaxX)
+      or (MaxY < ClipMinY) or (MinY > ClipMaxY) then
+      Exit(True); // Completely outside.
+    if MinY < ClipMinY then MinY := ClipMinY;
+    if MaxY > ClipMaxY then MaxY := ClipMaxY;
+  end;
+
+  if (MaxY - MinY) > MaxRasterIterations then
+  begin
+    SDL_SetError('%s(%s) %s: Polygon is too tall for rasterization',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    Exit(False);
+  end;
+
+  Iterations := 0;
   CurrY := MinY + 1; // Skip border
   while CurrY < MaxY do
   begin
+    Inc(Iterations);
+    if Iterations > MaxRasterIterations then
+    begin
+      SDL_SetError('%s(%s) %s: Too many scanlines',
+        [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+      Exit(False);
+    end;
+
     SetLength(XList, 0); // Removing previous intersections
 
     // Backwards because we wil delete not more useful segments
@@ -489,6 +614,12 @@ begin
       X1 := XList[aIndex] + 1;
       X2 := XList[aIndex + 1] - 1;
 
+      if BoundsOk then
+      begin
+        if X1 < ClipMinX then X1 := ClipMinX;
+        if X2 > ClipMaxX then X2 := ClipMaxX;
+      end;
+
       if X1 <= X2 then
         Result := Self.Line(X1, CurrY, X2, CurrY) and Result;
 
@@ -500,7 +631,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.SPPolygonFillOnly(const PArr: TSDLFPointDynArray;
-  const idxFirst: Integer; Count: Integer): Boolean;
+  const idxFirst : CInt; Count : CInt): Boolean;
 begin
   Result := IsValidArrayRange(Length(PArr), idxFirst, Count,
     {$I %LINE%}, {$I %CURRENTROUTINE%});
@@ -515,7 +646,7 @@ begin
 
   // ToDo: ¿Optimized Quads too?
 
-  Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, Count);
+  Result := SPPolygonFillOnlyUnsafe(PArr, idxFirst, Count) and Result;
 end;
 
 {
@@ -524,7 +655,7 @@ end;
 
 (*
 function cCHXSDL3Renderer.PolygonFilledUnsafeFP(const PArr: TSDLFPointDynArray;
-  const idxFirst, Count: Integer): Boolean;
+  const idxFirst, Count : CInt): Boolean;
 { See `cCHXSDL3Renderer.SPPolygonFilledUnsafe`
 
   Using rounded coordinates.
@@ -636,7 +767,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.PolygonFillOnlyUnsafeFP(
-  const PArr: TSDLFPointDynArray; const idxFirst, Count: Integer): Boolean;
+  const PArr: TSDLFPointDynArray; const idxFirst, Count : CInt): Boolean;
 { See `cCHXSDL3Renderer.SPPolygonFilledUnsafe`
 
   Using rounded coordinates.

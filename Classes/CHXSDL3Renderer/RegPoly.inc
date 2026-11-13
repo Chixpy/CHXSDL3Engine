@@ -16,7 +16,7 @@
 }
 
 function cCHXSDL3Renderer.RegPolyCCVertices(out PArr: TSDLFPointDynArray;
-  const X, Y, R: CFloat; const NSides: Integer; Angle: CFloat): Boolean;
+  const X, Y, R: CFloat; const NSides : CInt; Angle: CFloat): Boolean;
 var
   i: Integer;
   dAng, aSin, aCos: CFloat;
@@ -27,6 +27,24 @@ begin
       [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
       NSides]);
     SetLength(PArr, 0); // Sorry, we don't keep previous data.
+    Exit(False);
+  end;
+
+  if NSides > MaxRegPolySides then
+  begin
+    SDL_SetError('%s(%s) %s: NSides(%d) > %d',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%},
+      NSides, MaxRegPolySides]);
+    SetLength(PArr, 0);
+    Exit(False);
+  end;
+
+  if not (CHXSDL3IsFinite(X) and CHXSDL3IsFinite(Y)
+    and CHXSDL3IsFinite(R) and CHXSDL3IsFinite(Angle)) then
+  begin
+    SDL_SetError('%s(%s) %s: Non-finite X, Y, R or Angle',
+      [{$I %FILE%}, {$I %LINE%}, {$I %CURRENTROUTINE%}]);
+    SetLength(PArr, 0);
     Exit(False);
   end;
 
@@ -44,7 +62,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolyCC(const X, Y, R: CFloat;
-  const NSides: Integer; const BorderC, FillC: TSDL_FColor;
+  const NSides : CInt; const BorderC, FillC: TSDL_FColor;
   const Angle: CFloat): Boolean;
 begin
   // Quick test
@@ -77,7 +95,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolyCCBorder(const X, Y, R: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 var
   PArr: TSDLFPointDynArray;
 begin
@@ -86,12 +104,12 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolyCCFilledRaw(const X, Y, R: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 var
   PArr: TSDLFPointDynArray;
-  Indices: Array of Byte;
+  Indices: Array of Cardinal;
   FColor: TSDL_FColor;
-  i, j: Integer;
+  i, j: CInt;
 begin
   if not RegPolyCCVertices(PArr, X, Y, R, NSides, Angle) then Exit(False);
 
@@ -102,31 +120,32 @@ begin
   for i := 0 to (NSides - 2) do
   begin
     j := i * 3;
-    Indices[j] := High(PArr);
-    Indices[j + 1] := i;
-    Indices[j + 2] := i + 1;
+    Indices[j] := Cardinal(High(PArr));
+    Indices[j + 1] := Cardinal(i);
+    Indices[j + 2] := Cardinal(i + 1);
   end;
   j := (NSides - 1) * 3;
-  Indices[j] := High(PArr);
-  Indices[j + 1] := High(PArr) - 1;
-  Indices[j + 2] := Low(PArr);
+  Indices[j] := Cardinal(High(PArr));
+  Indices[j + 1] := Cardinal(High(PArr) - 1);
+  Indices[j + 2] := Cardinal(Low(PArr));
 
   Result := GetDrawColor(FColor)
     and SDL_RenderGeometryRaw(SDLRenderer, nil,
       @PArr[0], SizeOf(TSDL_FPoint), // Puntos
       @FColor, 0, // Colores
       nil, 0, // uv
-      Length(PArr), @Indices[0], NSides * 3, 1); // Indices
+      CInt(Length(PArr)), @Indices[0], CInt(Length(Indices)),
+      SizeOf(Cardinal)); // Indices
 end;
 
 function cCHXSDL3Renderer.RegPolyCCFilled(const X, Y, R: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 begin
   Result := RegPolyCCFilledRaw(X + 0.5, Y + 0.5, R + 0.5, NSides, Angle);
 end;
 
 function cCHXSDL3Renderer.RegPolyCCFillOnly(const X, Y, R: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 begin
   case NSides of
     1, 2: Exit(True); // Nothing to fill but OK
@@ -140,7 +159,7 @@ end;
 }
 
 function cCHXSDL3Renderer.RegPolySSVertices(out PArr: TSDLFPointDynArray;
-  const X, Y, SideSize: CFloat; const NSides: Integer; const Angle: CFloat)
+  const X, Y, SideSize: CFloat; const NSides : CInt; const Angle: CFloat)
   : Boolean;
 begin
   if NSides < 1 then // `1` doesn't have sense but add a point.
@@ -156,7 +175,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolySS(const X, Y, SideSize: CFloat;
-  const NSides: Integer; const BorderC, FillC: TSDL_FColor;
+  const NSides : CInt; const BorderC, FillC: TSDL_FColor;
   const Angle: CFloat): Boolean;
 begin
   if NSides < 1 then
@@ -171,7 +190,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolySSBorder(const X, Y, SideSize: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 begin
   if NSides < 1 then
   begin
@@ -185,7 +204,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolySSFilled(const X, Y, SideSize: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 begin
   if NSides < 1 then
   begin
@@ -199,7 +218,7 @@ begin
 end;
 
 function cCHXSDL3Renderer.RegPolySSFillOnly(const X, Y, SideSize: CFloat;
-  const NSides: Integer; const Angle: CFloat): Boolean;
+  const NSides : CInt; const Angle: CFloat): Boolean;
 begin
   if NSides < 1 then
   begin

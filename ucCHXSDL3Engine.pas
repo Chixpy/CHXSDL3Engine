@@ -597,7 +597,7 @@ begin
         for aComp in CompList do
         begin
           Window.PushRenderSize(aComp.LogPresW, aComp.LogPresH,
-            aComp.LogPresH);
+            aComp.LogPresMode);
           aComp.Draw(Render);
           Window.PopRenderSize;
         end;
@@ -658,7 +658,7 @@ begin
         if Assigned(FocusedComp) then
         begin
           Window.PushRenderSize(FocusedComp.LogPresW, FocusedComp.LogPresH,
-            FocusedComp.LogPresH);
+            FocusedComp.LogPresMode);
           LPEvent := aEvent;
           SDL_ConvertEventToRenderCoordinates(SDLRenderer, @LPEvent);
           FocusedComp.HandleEvent(LPEvent, HandledEvent, ProgExit);
@@ -670,7 +670,7 @@ begin
         begin
           if aComp = FocusedComp then Continue;
           Window.PushRenderSize(aComp.LogPresW, aComp.LogPresH,
-            aComp.LogPresH);
+            aComp.LogPresMode);
           LPEvent := aEvent;
           SDL_ConvertEventToRenderCoordinates(SDLRenderer, @LPEvent);
           aComp.HandleEvent(LPEvent, HandledEvent, ProgExit);
@@ -735,11 +735,11 @@ begin
   Window.Free; // Frees Render too
 
   // Little SDL error and leak test.
-  if SDL_GetError <> '' then
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, SDL_GetError);
-  if SDL_GetNumAllocations >= 0 then
+  if (SDL_GetError <> nil) and (SDL_GetError^ <> #0) then
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, '%s', [SDL_GetError]);
+  if SDL_GetNumAllocations > 0 then
      SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
-       'Mem allocations not freed: %d', [SDL_GetNumAllocations]); 
+       'Mem allocations not freed: %d', [SDL_GetNumAllocations]);
 
   SDL_Quit;
 
