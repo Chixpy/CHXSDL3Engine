@@ -126,7 +126,7 @@ end;
 var
   Game : cMyGame;
 begin
-  Game := cMyGame.Create('My Game', 'mygame.ini', True);
+  Game := cMyGame.Create('My Game', 'mygame.ini');
   try
     Game.Run;
   finally
@@ -134,6 +134,77 @@ begin
   end;
 end.
 ```
+
+## Configuration
+
+`cCHXSDL3Engine` owns a `cCHXSDL3Config` instance exposed as `Game.Config`.
+The configuration can be created from values, from an INI file, or from an
+already opened `TCustomIniFile`:
+
+```pascal
+// Values. AutoInit defaults to False, so Config can be adjusted before Init.
+Game := cMyGame.Create(False, 'My Game', 640, 480, 2);
+
+// File. The engine is initialized automatically.
+Game := cMyGame.Create('My Game', 'mygame.ini');
+
+// Already opened file. The caller keeps ownership of the IniFile.
+Game := cMyGame.Create('My Game', MyIniFile);
+```
+
+With `AutoInit = False`, change `Game.Config` and call `Game.Init`:
+
+```pascal
+Game := cMyGame.Create(False, 'My Game');
+try
+  Game.Config.Width := 1280;
+  Game.Config.Height := 720;
+  Game.Config.FPS := 60;
+  Game.Config.LogicalPresentation := SDL_LOGICAL_PRESENTATION_LETTERBOX;
+  Game.Init;
+  Game.Run;
+finally
+  Game.Free;
+end;
+```
+
+The INI file uses the `[SDL3Engine]` section with the keys `Width`, `Height`,
+`Scale`, `FullScreen`, `Render`, `FPS`, `LogicalPresentation`, `ShowFrameRate`
+and `VSync`. `LogicalPresentation` accepts `Disabled`, `Stretch`, `Letterbox`,
+`Overscan` or `IntegerScale`.
+
+### Command line
+
+`Init` applies the command line every time it is called. Precedence, from
+lowest to highest, is:
+
+1. Defaults and constructor values.
+2. INI files loaded by the constructor or by `--config`.
+3. Command line options.
+
+Because the command line is applied by `Init`, it also wins after manual
+changes made with `AutoInit = False`.
+
+Supported options:
+
+| Option | Description |
+| --- | --- |
+| `--config <file>` | Load an INI file. Can be repeated. |
+| `--width <pixels>` | Renderer width. |
+| `--height <pixels>` | Renderer height. |
+| `--scale <factor>` | Window scale. `0` maximizes the window. |
+| `--fullscreen` | Enable full screen. |
+| `--render <drivers>` | Comma-separated renderer drivers. |
+| `--fps <value>` | Target FPS, clamped to `1..1000`. Default `30`. |
+| `--logical <mode>` | `Disabled`, `Stretch`, `Letterbox`, `Overscan`, `IntegerScale` or `0..4`. |
+| `--show-fps` | Show frame rate information. |
+| `--vsync` | Enable vertical synchronization. |
+
+Options with a value accept both `--name=value` and `--name value`. Boolean
+options accept `--no-<name>` and an explicit `--name=true|false`. Arguments
+are processed in order, so the last value wins. `--` stops parsing; unknown
+arguments are ignored by the engine and returned by the `ApplyCommandLine`
+array overload.
 
 ## Project structure
 

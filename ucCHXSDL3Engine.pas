@@ -8,7 +8,7 @@ unit ucCHXSDL3Engine;
 interface
 
 uses
-  SysUtils, CTypes,
+  SysUtils, CTypes, IniFiles,
   SDL3,
   uCHXSDL3TypeHelpers,
   ucCHXSDL3Config, ucCHXSDL3Renderer, ucCHXSDL3Window, ucCHXSDL3FPSManager,
@@ -139,32 +139,57 @@ type
     property ShowFrameRate: Boolean
       read FShowFrameRate write SetShowFrameRate;
 
-    constructor Create(const aTitle: String;
+    constructor Create(const AutoInit: Boolean = False;
+      const aTitle: String = '';
       const aWidth : CInt = 0; const aHeight: CInt = 0; const Scale: CInt = 1;
       const FullScreen: Boolean = False; const RenderDrivers: String = '';
-      const AutoInit: Boolean = True);
-      overload;
-    {< Simple constructor.
+      const FPS: CUInt16 = cCHXSDL3DefaultFPS;
+      const LogicalPresentation: TSDL_RendererLogicalPresentation
+        = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+      const aShowFrameRate: Boolean = False;
+      const aVSync: Boolean = False); overload;
+    {< Constructor with configuration values.
 
-      @param(aTitle Title of the window.)
+      @param(AutoInit Init engine automatically. If @False, the engine is
+         created with the given configuration but not initialized, so
+         cCHXSDL3Engine.Config properties can be changed and then
+         cCHXSDL3Engine.Init must be called.)
+      @param(aTitle Title of the window. It can be changed later.)
       @param(aWidth Width for the renderer.)
       @param(aHeight Height of the renderer.)
       @param(Scale Scale of the window.)
       @param(FullScreen Create a full screen.)
-      @param(Render Use GPU Renderer.)
-      @param(AutoInit Init engine automatically. If @False,
-         cCHXSDL3Engine.Config properties can be changed and then
-         cCHXSDL3Engine.Init must be called.)
+      @param(RenderDrivers Comma separated renderer drivers to try.)
+      @param(FPS Frames per second target.)
+      @param(LogicalPresentation Logical presentation mode for the renderer.)
+      @param(aShowFrameRate Show frame rate information.)
+      @param(aVSync Enable vertical synchronization if supported.)
+
+      Command line arguments are applied by Init, after any manual changes
+      to cCHXSDL3Engine.Config.
     }
-    constructor Create(const aTitle: String; const aIniFile: String;
-      const AutoInit: Boolean = True); overload;
+    constructor Create(const aTitle: String; const aIniFile: String); overload;
     {< Constructor reading an .ini file with the settings.
+
+       The engine is initialized automatically. Use the values constructor
+       with AutoInit = False if the configuration must be changed after
+       loading the file.
 
        @param(aTitle Title of the window.)
        @param(aIniFile File with engine settings.)
-       @param(AutoInit Init engine after reading the file. If @False,
-         cCHXSDL3Engine.Config properties can be changed and then
-         cCHXSDL3Engine.Init must be called.)
+    }
+    constructor Create(const aTitle: String;
+      const aIniFile: TCustomIniFile); overload;
+    {< Constructor reading settings from an already opened .ini file.
+
+       The caller keeps ownership of the TIniFile/TMemIniFile object.
+
+       The engine is initialized automatically. Use the values constructor
+       with AutoInit = False if the configuration must be changed after
+       loading the file.
+
+       @param(aTitle Title of the window.)
+       @param(aIniFile Already opened .ini file with engine settings.)
     }
     procedure Init;
     {< Init the engine and window. }
@@ -212,6 +237,9 @@ procedure cCHXSDL3Engine.SetShowFrameRate(const aValue: Boolean);
 begin
   if FShowFrameRate = aValue then Exit;
   FShowFrameRate := aValue;
+
+  if Assigned(Config) then
+    Config.ShowFrameRate := aValue;
 
   if Assigned(Window) then
     Window.Title := Self.Title;
@@ -470,9 +498,12 @@ begin
   end;
 end;
 
-constructor cCHXSDL3Engine.Create(const aTitle : String;
-  const aWidth, aHeight, Scale : CInt; const FullScreen : Boolean;
-  const RenderDrivers : String; const AutoInit : Boolean);
+constructor cCHXSDL3Engine.Create(const AutoInit : Boolean;
+  const aTitle : String; const aWidth, aHeight, Scale : CInt;
+  const FullScreen : Boolean; const RenderDrivers : String;
+  const FPS : CUInt16;
+  const LogicalPresentation : TSDL_RendererLogicalPresentation;
+  const aShowFrameRate, aVSync : Boolean);
 begin
   inherited Create;
 
@@ -486,13 +517,17 @@ begin
   Config.Scale := Scale;
   Config.FullScreen := FullScreen;
   Config.Render := RenderDrivers;
+  Config.FPS := FPS;
+  Config.LogicalPresentation := LogicalPresentation;
+  Config.ShowFrameRate := aShowFrameRate;
+  Config.VSync := aVSync;
 
   if AutoInit then
     Init;
 end;
 
 constructor cCHXSDL3Engine.Create(const aTitle: String;
-  const aIniFile: String; const AutoInit: Boolean);
+  const aIniFile: String);
 begin
   inherited Create;
 
@@ -501,19 +536,26 @@ begin
   Title := aTitle;
 
   Config := cCHXSDL3Config.Create;
+  Config.DefaultFileName := aIniFile;
+  Config.LoadFromFile(aIniFile);
 
-  if AutoInit then
-  begin
-    Config.DefaultFileName := aIniFile;
-    Config.LoadFromFile('');
-    Init;
-  end
-  else
-  begin
-    Config.LoadFromFile(aIniFile);
-    // if Config is be changed manually then no save changes
-    Config.DefaultFileName := '';
-  end;
+  Init;
+end;
+
+constructor cCHXSDL3Engine.Create(const aTitle: String;
+  const aIniFile: TCustomIniFile);
+begin
+  inherited Create;
+
+  SetDefaultValues;
+
+  Title := aTitle;
+
+  Config := cCHXSDL3Config.Create;
+  if Assigned(aIniFile) then
+    Config.LoadFromIni(aIniFile);
+
+  Init;
 end;
 
 procedure cCHXSDL3Engine.Init;
@@ -525,12 +567,22 @@ begin
     SDL_StopTextInput;
 *)
 
+  // Command line arguments have the highest precedence. Applying them here
+  // also covers the AutoInit = False workflow, where Config may have been
+  // changed after the constructor returned.
+  Config.Sanitize;
+  Config.ApplyCommandLine;
+  Config.Sanitize;
+
+  ShowFrameRate := Config.ShowFrameRate;
+
 //  SDL_FreeFormat(FPWinPxFmt);
   FreeAndNil(FWindow);
 //  FreeAndNil(FDefFont);
 
   aWindow := cCHXSDL3Window.Create(Title, Config.Width,
-    Config.Height, Config.Scale, Config.FullScreen, Config.Render);
+    Config.Height, Config.Scale, Config.FullScreen, Config.Render,
+    Config.LogicalPresentation, Config.VSync);
 
   Window := aWindow; // Sets SDLRenderer and SDLWindow
 
@@ -559,10 +611,7 @@ var
   aComp: caCHXSDL3Component;
 begin
   ProgExit := False;
-  FPSMng := cCHXSDL3FPSManager.Create(30);
-  {<
-    ToDo: Make FPS configurable with Config.
-  }
+  FPSMng := cCHXSDL3FPSManager.Create(Config.FPS);
 
   try
     Self.Setup;

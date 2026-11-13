@@ -323,8 +323,8 @@ begin
     'https://github.com/Chixpy');
   SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, 'application');
 
-  SDL3Eng := cSDL3Eng.Create(ExtractFileName(ParamStr(0)), kRenderW, kRenderH,
-    kWinScale, kFullScreen, kRDriver);
+  SDL3Eng := cSDL3Eng.Create(True, ExtractFileName(ParamStr(0)),
+    kRenderW, kRenderH, kWinScale, kFullScreen, kRDriver);
   try
     SDL3Eng.Run;
   finally

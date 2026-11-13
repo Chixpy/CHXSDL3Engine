@@ -28,8 +28,10 @@ Omitted:
   - **Title** : String
   - **ShowFrameRate** : Boolean
 - Methods:
-  - **Create** (Title, Width, Height, Scale, FullScreen, UseGPU, AutoInit)
-    - (Title, IniFilename, AutoInit)
+  - **Create** (AutoInit, Title, Width, Height, Scale, FullScreen,
+    RenderDrivers, FPS, LogicalPresentation, ShowFrameRate, VSync)
+  - **Create** (Title, IniFilename)
+  - **Create** (Title, IniFile)
   - **Init**
   - **Run**
   - **Setup**
@@ -42,7 +44,10 @@ Omitted:
 
 - Constants and Resource Strings:
   - **krsIniSectionSDL3Engine**, **krsIniKeyWidth**, **krsIniKeyHeight**,
-    **krsIniKeyScale**, **krsIniKeyFullScreen**, **krsIniKeyRender**
+    **krsIniKeyScale**, **krsIniKeyFullScreen**, **krsIniKeyRender**,
+    **krsIniKeyFPS**, **krsIniKeyLogicalPresentation**, **krsIniKeyShowFrameRate**,
+    **krsIniKeyVSync**
+  - **cCHXSDL3DefaultFPS**, **cCHXSDL3MaxFPS**
 
 ### cCHXSDL3Config
 
@@ -54,12 +59,23 @@ Omitted:
   - **Scale** : CInt
   - **FullScreen** : Boolean
   - **Render** : String
+  - **FPS** : CUInt16
+  - **LogicalPresentation** : TSDL_RendererLogicalPresentation
+  - **ShowFrameRate** : Boolean
+  - **VSync** : Boolean
 - Methods:
   - **ResetDefaultConfig**
   - **LoadFromFile** (Filename)
-  - **LoadFromIni** (MemIniFile)
+  - **LoadFromIni** (IniFile)
   - **SaveToFile** (Filename, ClearFile)
-  - **SaveToIni** (MemIniFile)
+  - **SaveToIni** (IniFile)
+  - **ApplyCommandLine**
+  - **ApplyCommandLine** (Args) : TCHXSDL3StringArray
+  - **Sanitize**
+
+- Functions:
+  - **CHXSDL3LogicalPresentationToString** (Mode) : String
+  - **CHXSDL3StringToLogicalPresentation** (Value, _Mode_) : Boolean
 
 ## Classes/ucCHXSDL3FPSManager.pas
 
@@ -184,7 +200,7 @@ Omitted:
     - **EllipseInRect**[Border|Filled|FillOnly] (aRect) : Boolean
       - (X, Y, W, H) : Boolean
   - Rounded Rect with Circle:
-    - **RndRectC** (aRect, R, BorderC, FillC) : Boolean
+    - **SPRndRectC** (aRect, R, BorderC, FillC) : Boolean
       - (X, Y, W, H, R, BorderC, FillC) : Boolean
     - **RndRectC**[Border|Filled|FillOnly] (aRect, R) : Boolean
       - (X, Y, W, H, R) : Boolean

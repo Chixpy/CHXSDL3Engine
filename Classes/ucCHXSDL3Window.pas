@@ -103,7 +103,10 @@ type
     constructor Create(const aTitle: String;
       const aWidth: CInt = 0; const aHeight: CInt = 0;
       Scale: CInt = 0; const aFullScreen: Boolean = False;
-      const RenderDrivers: String = '');
+      const RenderDrivers: String = '';
+      const aLogicalPresentation: TSDL_RendererLogicalPresentation
+        = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+      const aVSync: Boolean = False);
     {< Create a new SDL Window and its associated renderer.
 
       Render canvas size is automatically scaled to Window actual size.
@@ -114,7 +117,10 @@ type
       @param(Scale Scale window size. `0 = Maximized window.`
       @param aFullScreen Create full screen window.
       @param(RenderDrivers Comma separated drivers to try for renderer.
-        Empty try SDL preference.) 
+        Empty try SDL preference.)
+      @param(aLogicalPresentation Logical presentation mode used for the
+        renderer canvas.)
+      @param(aVSync Enable vertical synchronization if supported.)
     }
 
     destructor Destroy; override;
@@ -191,7 +197,9 @@ implementation
 
 constructor cCHXSDL3Window.Create(const aTitle : String;
   const aWidth, aHeight : CInt; Scale: CInt;
-  const aFullScreen : Boolean; const RenderDrivers : String);
+  const aFullScreen : Boolean; const RenderDrivers : String;
+  const aLogicalPresentation : TSDL_RendererLogicalPresentation;
+  const aVSync : Boolean);
 var
   Flags : TSDL_WindowFlags;
   Maximize : Boolean;
@@ -271,13 +279,18 @@ begin
     raise Exception.CreateFmt('[ERROR] SDL_CreateRenderer(''%s''): %s',
       [RenderDrivers, SDL_GetError]);
 
+  if not SDL_SetRenderVSync(PSDLRenderer, Ord(aVSync)) then
+  begin
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, 'SDL_SetRenderVSync: %s',
+      [SDL_GetError]);
+    SDL_ClearError;
+  end;
+
   // Renderer will destroy SDL Renderer
   Renderer := cCHXSDL3Renderer.Create(PSDLRenderer, True);
 
-  // ToDo: Make use of integer scale configurable:
-  //   (SDL_LOGICAL_PRESENTATION_INTEGER_SCALE)
   SetLength(LogPresStack, 1);
-  SetRenderSize(Width, Height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+  SetRenderSize(Width, Height, aLogicalPresentation);
 
   // Reading window flags to set properties
   Flags := SDL_GetWindowFlags(PSDLWindow);

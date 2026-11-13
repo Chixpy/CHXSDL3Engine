@@ -1,5 +1,47 @@
 # ChangeLog 2026
 
+## 2026-11-14 00:33
+
+Add configurable engine settings and command line options
+
+### `Classes/ucCHXSDL3Config.pas`
+- Add `FPS`, `LogicalPresentation`, `ShowFrameRate` and `VSync` settings.
+- Use `TSDL_RendererLogicalPresentation` and SDL3 constants directly.
+- Add `ApplyCommandLine` overloads with sequential argument processing.
+- Support `--config`, `--width`, `--height`, `--scale`, `--fullscreen`,
+  `--render`, `--fps`, `--logical`, `--show-fps` and `--vsync`.
+- Accept `--key=value`, `--key value`, boolean `--no-*` and
+  `--key=true|false`, and `--` as the end of engine options.
+- Add `Sanitize` to clamp ranges and validate the logical presentation mode.
+- Change `LoadFromIni` and `SaveToIni` to accept `TCustomIniFile`.
+- Add helpers to convert logical presentation modes to and from strings.
+
+### `Classes/ucCHXSDL3Window.pas`
+- Add logical presentation and VSync parameters to `Create`.
+- Apply `SDL_SetRenderVSync` and use the requested logical presentation mode.
+
+### `ucCHXSDL3Engine.pas`
+- Add a values constructor with `AutoInit` first and the new settings.
+- Add constructors for an INI filename and an already opened `TCustomIniFile`.
+- Apply and sanitize configuration in `Init`, including command line options.
+- Use `Config.FPS` in `Run` and keep `ShowFrameRate` synchronized with
+  `Config`.
+
+### `Tests/TestConfig.pas`
+- Add non-interactive tests for defaults, INI serialization, command line
+  parsing, repeated options and configuration precedence.
+
+### `Tests`
+- Update engine constructor calls to the new signature.
+- Document the configuration tests in `Tests/Readme.md`.
+
+### Documentation
+- Document the configuration constructors, INI keys and command line options.
+- Update `CheatSheet.md` with the new configuration API.
+
+### `.gitignore`
+- Ignore the local `PENDIENTES.md` audit notes.
+
 ## 2026-11-13 20:01
 
 Harden drawing primitives and SDL resource handling

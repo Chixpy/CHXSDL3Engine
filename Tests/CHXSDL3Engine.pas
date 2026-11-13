@@ -153,12 +153,12 @@ var
   CTCEng : cSDL3Eng;
 
 begin
-  CTCEng := cSDL3Eng.Create('CHXSDL3Engine Test', kRenderW, kRenderH, 0,
+  CTCEng := cSDL3Eng.Create(False, 'CHXSDL3Engine Test', kRenderW, kRenderH, 0,
     kFullScreen, kRDriver);
   try
-    // With `AutoInt = False` (7th parameter)
+    // With `AutoInit = False` (first parameter)
     // We can change configuration, call Init and then Run the engine...
-    // (Scale is actually constructor's 4th parameter...)
+    // (Scale is actually constructor's 5th parameter...)
     CTCEng.Config.Scale := kWinScale;
     CTCEng.Init;
     CTCEng.Run;

@@ -27,3 +27,13 @@ it can use the SDL dummy video driver with the software renderer:
 > `SDL_VIDEODRIVER=dummy ./bin/SmokePrimitives`
 
 It returns exit code `0` when all checks pass.
+
+## Configuration tests
+
+`TestConfig.pas` checks defaults, INI serialization, command line parsing and
+the precedence between configuration files and command line options. It does
+not open a window and can run on headless systems:
+
+> `./bin/TestConfig`
+
+It returns exit code `0` when all checks pass.
