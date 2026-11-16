@@ -10,9 +10,6 @@ tmp/
 *.bak
 backup/
 
-# Local reference copy of CHXPas (not part of this repository)
-CHXPas/
-
 # Editor / OS
 .DS_Store
 *.swp
@@ -22,4 +19,6 @@ CHXPas/
 LastChanges.md
 
 # Local audit/inventory notes (not part of this repository)
-PENDIENTES.md
+AGENTS.md
+RoadMap.md
+ToDo.md

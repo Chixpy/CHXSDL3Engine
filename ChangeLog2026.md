@@ -1,5 +1,21 @@
 # ChangeLog 2026
 
+## 2026-11-16 18:13
+
+Fix ShellCheck warnings in build and commit scripts
+
+### `Tests/build.sh`
+- Exit if `pushd` or `popd` fails.
+- Quote `"$@"` so compiler arguments are preserved.
+
+### `Tests/Primitives/build.sh`
+- Exit if `pushd` or `popd` fails.
+- Quote `"$@"` so compiler arguments are preserved.
+
+### `git_commit.sh`
+- Generate the yearly changelog index with `compgen` instead of `ls`.
+- Use an explicit no-op redirection to truncate `LastChanges.md`.
+
 ## 2026-11-14 00:33
 
 Add configurable engine settings and command line options

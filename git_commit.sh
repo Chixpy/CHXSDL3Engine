@@ -169,7 +169,7 @@ TEMP_LOG=""
 {
     echo "# CHANGELOG"
     echo ""
-    for f in $(ls -1 ChangeLog[0-9][0-9][0-9][0-9].md 2>/dev/null | sort -r); do
+    for f in $(compgen -G 'ChangeLog[0-9][0-9][0-9][0-9].md' | sort -r); do
         y=$(basename "$f" .md | sed 's/^ChangeLog//')
         echo "- [$y]($f)"
     done
@@ -182,7 +182,7 @@ git add .
 
 if git commit -F "$TEMP_MSG"; then
     echo "✅ Commit created successfully."
-    > "$LAST_CHANGES"
+    : > "$LAST_CHANGES"
     echo "Cleared $LAST_CHANGES."
 else
     echo "❌ Git commit failed. Restoring changelog files." >&2

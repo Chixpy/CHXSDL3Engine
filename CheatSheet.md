@@ -2,7 +2,7 @@
 
 Omitted:
 
-- Private and protected methods, fields or properties.
+- Not accessible methods, fields or properties.
 - Constructor `Create`, if it doesn't have parameters.
 - Destructor `Destroy`, unless it has another name or it has an alternative.
 - `constructor`, `destructor`, `function`, `procedure`, `operator` keywords.

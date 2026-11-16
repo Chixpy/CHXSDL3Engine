@@ -19,8 +19,9 @@ CHXSDL3Engine provides:
 
 ## Development
 
-This project is primarily developed with the assistance of an AI coding
-agent running in [OpenCode](https://opencode.ai/). The maintainer,
+After spliting from [CHXPas](https://github.com/Chixpy/CHXPas), this project
+is primarily developed with the assistance of an AI coding agent running in
+[OpenCode](https://opencode.ai/). The maintainer,
 [Chixpy](https://github.com/Chixpy), reviews the changes, makes the design
 decisions and contributes code from time to time.
 
