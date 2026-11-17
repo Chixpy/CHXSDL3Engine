@@ -34,6 +34,8 @@ please open an issue.
 - SDL3 runtime library (3.x) installed on the system.
 - [SDL3-for-Pascal](https://github.com/PascalGameDevelopment/SDL3-for-Pascal)
   units. This repository includes them as a submodule at `SDL3/`.
+- [CHXTests](https://github.com/Chixpy/CHXTests) units, included as a
+  submodule at `Tests/CHXTests/`. They are needed by the headless suites.
 
 ## Getting the source
 
@@ -75,6 +77,30 @@ stripped build:
 
 To run the graphical tests you need a working display (X11, Wayland, etc.).
 On Termux, [Termux:X11](https://github.com/termux/termux-x11) can be used.
+
+## Running headless tests
+
+The two non-interactive suites use CHXTests.
+
+Unix-like:
+
+```sh
+cd Tests
+./run_tests.sh
+```
+
+Windows:
+
+```bat
+cd Tests
+RunTests.bat
+```
+
+The runners build `TestConfig.pas` and `SmokePrimitives.pas`, then run them
+with `SDL_VIDEODRIVER=dummy` unless the caller defines another driver. Exit
+codes are `0` success, `1` failed assertion, `2` unexpected error and `3`
+skipped or no cases executed. Individual suites can still be built and run
+with `build.sh` or `Build.bat`.
 
 ## Minimal example
 
@@ -213,7 +239,7 @@ array overload.
 Abstracts/   Component base classes.
 Classes/     Engine, window, renderer, config and FPS manager.
 Units/       Type helpers and utility units.
-Tests/       Test programs.
+Tests/       Test programs; CHXTests submodule in Tests/CHXTests/.
 SDL3/        SDL3-for-Pascal submodule.
 ```
 

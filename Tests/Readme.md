@@ -18,6 +18,25 @@ The executable file will be created at `bin` directory.
 The SDL3 library must be installed or in the same directory as the program
 to run it.
 
+CHXTests is included as a submodule at `CHXTests/`. If it is missing, run
+`git submodule update --init --recursive` from the repository root.
+
+## Headless suites
+
+`TestConfig.pas` and `SmokePrimitives.pas` are non-interactive CHXTests
+suites. Compile and run both with:
+
+> `./run_tests.sh` (Unix-like)
+
+> `RunTests.bat` (Windows)
+
+Both runners set `SDL_VIDEODRIVER=dummy` unless the caller defines it, so
+they also work on headless systems. The remaining programs in this folder
+are interactive visual demos or environment diagnostics and need a display.
+
+CHXTests exit codes: `0` success, `1` failed assertion, `2` unexpected error,
+`3` skipped or no cases executed.
+
 ## Non-interactive smoke test
 
 `SmokePrimitives.pas` checks error handling and safety limits of

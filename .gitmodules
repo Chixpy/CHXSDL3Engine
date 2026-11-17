@@ -1,3 +1,6 @@
 [submodule "SDL3"]
 	path = SDL3
 	url = https://github.com/PascalGameDevelopment/SDL3-for-Pascal.git
+[submodule "Tests/CHXTests"]
+	path = Tests/CHXTests
+	url = https://github.com/Chixpy/CHXTests.git

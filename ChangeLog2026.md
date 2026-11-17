@@ -1,5 +1,44 @@
 # ChangeLog 2026
 
+## 2026-11-17 17:41
+
+Use CHXTests for headless tests and add cross-platform runners
+
+### `.gitmodules`
+- Register the CHXTests submodule under `Tests/CHXTests`.
+
+### `Tests/CHXTests`
+- Add CHXTests as a submodule pinned to `7cddc8d`.
+
+### `Tests/fpcfg.cfg`
+- Add `-FuCHXTests` and `-FiCHXTests` for the headless suites.
+
+### `Tests/TestConfig.pas`
+- Convert the program to a `cCHXTestGroup` suite with a console writer.
+- Replace local `Check*` helpers with CHXTests assertions.
+- Keep the 9 cases and 60 assertions.
+
+### `Tests/SmokePrimitives.pas`
+- Convert the program to a `cCHXTestGroup` suite with a shared window.
+- Split the existing checks into 18 cases and 84 assertions.
+- Keep the software renderer and the headless dummy-driver requirement.
+
+### `Tests/run_tests.sh`
+- Add a headless runner that builds and runs both suites.
+- Default to `SDL_VIDEODRIVER=dummy` and propagate CHXTests exit codes.
+
+### `Tests/RunTests.bat`
+- Add the Windows equivalent based on `Build.bat`.
+
+### `README.md`
+- Document the CHXTests dependency, headless runners and project layout.
+
+### `Tests/Readme.md`
+- Document the CHXTests submodule, both runners and exit codes.
+
+### `Classes/ucCHXSDL3Renderer.pas`
+- Document that SDL3 `Clear` ignores alpha.
+
 ## 2026-11-16 18:13
 
 Fix ShellCheck warnings in build and commit scripts

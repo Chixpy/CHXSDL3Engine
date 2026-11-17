@@ -340,7 +340,7 @@ type
       @param(R Red in float [0..1] range.)
       @param(G Green in float [0..1] range.)
       @param(B Blue in float [0..1] range.)
-      @param(A Opacity/Alpha in float [0..1] range. ToDo: ¿Is Alpha used?)
+      @param(A Alpha in float [0..1] range. SDL3 ignores it when clearing.)
 
       @param(Grey Grey in float [0..1] range.)
     }

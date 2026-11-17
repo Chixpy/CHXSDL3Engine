@@ -1,66 +1,58 @@
 program TestConfig;
 {<
-  Non-interactive tests for cCHXSDL3Config.
+  Non-interactive tests for cCHXSDL3Config, using CHXTests.
 
   (C) 2026 Chixpy https://github.com/Chixpy
 }
 {$mode ObjFPC}{$H+}
 uses
   SysUtils, IniFiles, SDL3,
-  ucCHXSDL3Config;
+  ucCHXSDL3Config,
+  ucCHXTestGroup, ucCHXTWConsole;
 
-var
-  Failures: Integer = 0;
+type
 
-procedure Check(const aName: String; const aGot, aExpected: Boolean);
-begin
-  if aGot <> aExpected then
-  begin
-    Inc(Failures);
-    WriteLn('FAIL: ', aName, ' (got ', aGot, ', expected ', aExpected, ')');
+  { cCHXSDL3ConfigTests }
+
+  cCHXSDL3ConfigTests = class(cCHXTestGroup)
+  published
+    procedure TestDefaults;
+    procedure TestIni;
+    procedure TestCommandLineRepeated;
+    procedure TestCommandLineSpaces;
+    procedure TestCommandLineTerminator;
+    procedure TestConfigOrder;
+    procedure TestSanitize;
+    procedure TestSaveRoundTrip;
+    procedure TestLogicalNames;
   end;
-end;
 
-procedure CheckInt(const aName: String; const aGot, aExpected: Int64);
-begin
-  if aGot <> aExpected then
-  begin
-    Inc(Failures);
-    WriteLn('FAIL: ', aName, ' (got ', aGot, ', expected ', aExpected, ')');
-  end;
-end;
+{
+  cCHXSDL3ConfigTests
+}
 
-procedure CheckStr(const aName, aGot, aExpected: String);
-begin
-  if aGot <> aExpected then
-  begin
-    Inc(Failures);
-    WriteLn('FAIL: ', aName, ' (got "', aGot, '", expected "', aExpected, '")');
-  end;
-end;
-
-procedure TestDefaults;
+procedure cCHXSDL3ConfigTests.TestDefaults;
 var
   C: cCHXSDL3Config;
 begin
   C := cCHXSDL3Config.Create;
   try
-    CheckInt('default Width', C.Width, 0);
-    CheckInt('default Height', C.Height, 0);
-    CheckInt('default Scale', C.Scale, 0);
-    Check('default FullScreen', C.FullScreen, False);
-    CheckStr('default Render', C.Render, '');
-    CheckInt('default FPS', C.FPS, cCHXSDL3DefaultFPS);
-    Check('default LogicalPresentation',
-      C.LogicalPresentation = SDL_LOGICAL_PRESENTATION_LETTERBOX, True);
-    Check('default ShowFrameRate', C.ShowFrameRate, False);
-    Check('default VSync', C.VSync, False);
+    MustEqual(Int64(C.Width), 0, 'default Width');
+    MustEqual(Int64(C.Height), 0, 'default Height');
+    MustEqual(Int64(C.Scale), 0, 'default Scale');
+    MustFalse(C.FullScreen, 'default FullScreen');
+    MustEqual(C.Render, '', 'default Render');
+    MustEqual(Int64(C.FPS), cCHXSDL3DefaultFPS, 'default FPS');
+    MustTrue(C.LogicalPresentation =
+      SDL_LOGICAL_PRESENTATION_LETTERBOX, 'default LogicalPresentation');
+    MustFalse(C.ShowFrameRate, 'default ShowFrameRate');
+    MustFalse(C.VSync, 'default VSync');
   finally
     C.Free;
   end;
 end;
 
-procedure TestIni;
+procedure cCHXSDL3ConfigTests.TestIni;
 var
   C: cCHXSDL3Config;
   Ini: TMemIniFile;
@@ -81,16 +73,16 @@ begin
     C := cCHXSDL3Config.Create;
     try
       C.LoadFromIni(Ini);
-      CheckInt('ini Width', C.Width, 640);
-      CheckInt('ini Height', C.Height, 480);
-      CheckInt('ini Scale', C.Scale, 2);
-      Check('ini FullScreen', C.FullScreen, True);
-      CheckStr('ini Render', C.Render, 'software');
-      CheckInt('ini FPS', C.FPS, 45);
-      Check('ini LogicalPresentation',
-        C.LogicalPresentation = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE, True);
-      Check('ini ShowFrameRate', C.ShowFrameRate, True);
-      Check('ini VSync', C.VSync, True);
+      MustEqual(Int64(C.Width), 640, 'ini Width');
+      MustEqual(Int64(C.Height), 480, 'ini Height');
+      MustEqual(Int64(C.Scale), 2, 'ini Scale');
+      MustTrue(C.FullScreen, 'ini FullScreen');
+      MustEqual(C.Render, 'software', 'ini Render');
+      MustEqual(Int64(C.FPS), 45, 'ini FPS');
+      MustTrue(C.LogicalPresentation =
+        SDL_LOGICAL_PRESENTATION_INTEGER_SCALE, 'ini LogicalPresentation');
+      MustTrue(C.ShowFrameRate, 'ini ShowFrameRate');
+      MustTrue(C.VSync, 'ini VSync');
     finally
       C.Free;
     end;
@@ -99,7 +91,7 @@ begin
   end;
 end;
 
-procedure TestCommandLineRepeated;
+procedure cCHXSDL3ConfigTests.TestCommandLineRepeated;
 var
   C: cCHXSDL3Config;
   Unhandled: TCHXSDL3StringArray;
@@ -109,23 +101,23 @@ begin
     Unhandled := C.ApplyCommandLine(['--width=640', '--unknown',
       '--width=800', '--fps=60', '--logical=integer', '--fullscreen',
       '--host-arg']);
-    CheckInt('cli repeated width', C.Width, 800);
-    CheckInt('cli fps', C.FPS, 60);
-    Check('cli logical',
-      C.LogicalPresentation = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE, True);
-    Check('cli fullscreen', C.FullScreen, True);
-    CheckInt('cli unhandled count', Length(Unhandled), 2);
+    MustEqual(Int64(C.Width), 800, 'cli repeated width');
+    MustEqual(Int64(C.FPS), 60, 'cli fps');
+    MustTrue(C.LogicalPresentation =
+      SDL_LOGICAL_PRESENTATION_INTEGER_SCALE, 'cli logical');
+    MustTrue(C.FullScreen, 'cli fullscreen');
+    MustEqual(Int64(Length(Unhandled)), 2, 'cli unhandled count');
     if Length(Unhandled) = 2 then
     begin
-      CheckStr('cli unhandled arg 1', Unhandled[0], '--unknown');
-      CheckStr('cli unhandled arg 2', Unhandled[1], '--host-arg');
+      MustEqual(Unhandled[0], '--unknown', 'cli unhandled arg 1');
+      MustEqual(Unhandled[1], '--host-arg', 'cli unhandled arg 2');
     end;
   finally
     C.Free;
   end;
 end;
 
-procedure TestCommandLineSpaces;
+procedure cCHXSDL3ConfigTests.TestCommandLineSpaces;
 var
   C: cCHXSDL3Config;
 begin
@@ -134,18 +126,18 @@ begin
     C.FullScreen := True;
     C.ApplyCommandLine(['--width', '1024', '--height', '768',
       '--fps', '50', '--no-fullscreen', '--logical', 'overscan']);
-    CheckInt('cli space width', C.Width, 1024);
-    CheckInt('cli space height', C.Height, 768);
-    CheckInt('cli space fps', C.FPS, 50);
-    Check('cli no-fullscreen', C.FullScreen, False);
-    Check('cli logical overscan',
-      C.LogicalPresentation = SDL_LOGICAL_PRESENTATION_OVERSCAN, True);
+    MustEqual(Int64(C.Width), 1024, 'cli space width');
+    MustEqual(Int64(C.Height), 768, 'cli space height');
+    MustEqual(Int64(C.FPS), 50, 'cli space fps');
+    MustFalse(C.FullScreen, 'cli no-fullscreen');
+    MustTrue(C.LogicalPresentation =
+      SDL_LOGICAL_PRESENTATION_OVERSCAN, 'cli logical overscan');
   finally
     C.Free;
   end;
 end;
 
-procedure TestCommandLineTerminator;
+procedure cCHXSDL3ConfigTests.TestCommandLineTerminator;
 var
   C: cCHXSDL3Config;
   Unhandled: TCHXSDL3StringArray;
@@ -153,16 +145,16 @@ begin
   C := cCHXSDL3Config.Create;
   try
     Unhandled := C.ApplyCommandLine(['--width=100', '--', '--width=200']);
-    CheckInt('cli before terminator', C.Width, 100);
-    CheckInt('cli terminator unhandled', Length(Unhandled), 1);
+    MustEqual(Int64(C.Width), 100, 'cli before terminator');
+    MustEqual(Int64(Length(Unhandled)), 1, 'cli terminator unhandled');
     if Length(Unhandled) = 1 then
-      CheckStr('cli terminator arg', Unhandled[0], '--width=200');
+      MustEqual(Unhandled[0], '--width=200', 'cli terminator arg');
   finally
     C.Free;
   end;
 end;
 
-procedure TestConfigOrder;
+procedure cCHXSDL3ConfigTests.TestConfigOrder;
 var
   C: cCHXSDL3Config;
   Ini: TMemIniFile;
@@ -194,10 +186,10 @@ begin
       Unhandled := C.ApplyCommandLine(['--width=1024', '--config', FileName,
         '--fps=60']);
 
-      CheckInt('config order width', C.Width, 800);
-      CheckInt('config order height', C.Height, 480);
-      CheckInt('config order fps', C.FPS, 60);
-      CheckInt('config order unhandled', Length(Unhandled), 0);
+      MustEqual(Int64(C.Width), 800, 'config order width');
+      MustEqual(Int64(C.Height), 480, 'config order height');
+      MustEqual(Int64(C.FPS), 60, 'config order fps');
+      MustEqual(Int64(Length(Unhandled)), 0, 'config order unhandled');
     finally
       C.Free;
     end;
@@ -206,7 +198,7 @@ begin
   end;
 end;
 
-procedure TestSanitize;
+procedure cCHXSDL3ConfigTests.TestSanitize;
 var
   C: cCHXSDL3Config;
 begin
@@ -218,22 +210,22 @@ begin
     C.FPS := 0;
     C.LogicalPresentation := 99;
     C.Sanitize;
-    CheckInt('sanitize Width', C.Width, 0);
-    CheckInt('sanitize Height', C.Height, 0);
-    CheckInt('sanitize Scale', C.Scale, 0);
-    CheckInt('sanitize FPS', C.FPS, 1);
-    Check('sanitize LogicalPresentation',
-      C.LogicalPresentation = SDL_LOGICAL_PRESENTATION_LETTERBOX, True);
+    MustEqual(Int64(C.Width), 0, 'sanitize Width');
+    MustEqual(Int64(C.Height), 0, 'sanitize Height');
+    MustEqual(Int64(C.Scale), 0, 'sanitize Scale');
+    MustEqual(Int64(C.FPS), 1, 'sanitize FPS');
+    MustTrue(C.LogicalPresentation =
+      SDL_LOGICAL_PRESENTATION_LETTERBOX, 'sanitize LogicalPresentation');
 
     C.FPS := 5000;
     C.Sanitize;
-    CheckInt('sanitize max FPS', C.FPS, cCHXSDL3MaxFPS);
+    MustEqual(Int64(C.FPS), cCHXSDL3MaxFPS, 'sanitize max FPS');
   finally
     C.Free;
   end;
 end;
 
-procedure TestSaveRoundTrip;
+procedure cCHXSDL3ConfigTests.TestSaveRoundTrip;
 var
   C, D: cCHXSDL3Config;
   Ini: TMemIniFile;
@@ -259,16 +251,17 @@ begin
     D := cCHXSDL3Config.Create;
     try
       D.LoadFromIni(Ini);
-      CheckInt('roundtrip Width', D.Width, 123);
-      CheckInt('roundtrip Height', D.Height, 456);
-      CheckInt('roundtrip Scale', D.Scale, 2);
-      Check('roundtrip FullScreen', D.FullScreen, True);
-      CheckStr('roundtrip Render', D.Render, 'software');
-      CheckInt('roundtrip FPS', D.FPS, 75);
-      Check('roundtrip LogicalPresentation',
-        D.LogicalPresentation = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE, True);
-      Check('roundtrip ShowFrameRate', D.ShowFrameRate, True);
-      Check('roundtrip VSync', D.VSync, True);
+      MustEqual(Int64(D.Width), 123, 'roundtrip Width');
+      MustEqual(Int64(D.Height), 456, 'roundtrip Height');
+      MustEqual(Int64(D.Scale), 2, 'roundtrip Scale');
+      MustTrue(D.FullScreen, 'roundtrip FullScreen');
+      MustEqual(D.Render, 'software', 'roundtrip Render');
+      MustEqual(Int64(D.FPS), 75, 'roundtrip FPS');
+      MustTrue(D.LogicalPresentation =
+        SDL_LOGICAL_PRESENTATION_INTEGER_SCALE,
+        'roundtrip LogicalPresentation');
+      MustTrue(D.ShowFrameRate, 'roundtrip ShowFrameRate');
+      MustTrue(D.VSync, 'roundtrip VSync');
     finally
       D.Free;
     end;
@@ -277,42 +270,41 @@ begin
   end;
 end;
 
-procedure TestLogicalNames;
+procedure cCHXSDL3ConfigTests.TestLogicalNames;
 var
   Mode: TSDL_RendererLogicalPresentation;
 begin
-  Check('logical name disabled',
-    CHXSDL3StringToLogicalPresentation('Disabled', Mode)
-      and (Mode = SDL_LOGICAL_PRESENTATION_DISABLED), True);
-  Check('logical name integer-scale',
-    CHXSDL3StringToLogicalPresentation('integer-scale', Mode)
-      and (Mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE), True);
-  Check('logical name numeric',
-    CHXSDL3StringToLogicalPresentation('3', Mode)
-      and (Mode = SDL_LOGICAL_PRESENTATION_OVERSCAN), True);
-  Check('logical name invalid',
-    CHXSDL3StringToLogicalPresentation('nope', Mode), False);
-  CheckStr('logical string',
-    CHXSDL3LogicalPresentationToString(SDL_LOGICAL_PRESENTATION_INTEGER_SCALE),
-    'IntegerScale');
+  MustTrue(CHXSDL3StringToLogicalPresentation('Disabled', Mode),
+    'parse logical name Disabled');
+  MustEqual(Int64(Ord(Mode)),
+    Int64(Ord(SDL_LOGICAL_PRESENTATION_DISABLED)), 'logical name Disabled');
+
+  MustTrue(CHXSDL3StringToLogicalPresentation('integer-scale', Mode),
+    'parse logical name integer-scale');
+  MustEqual(Int64(Ord(Mode)),
+    Int64(Ord(SDL_LOGICAL_PRESENTATION_INTEGER_SCALE)),
+    'logical name integer-scale');
+
+  MustTrue(CHXSDL3StringToLogicalPresentation('3', Mode),
+    'parse logical name numeric');
+  MustEqual(Int64(Ord(Mode)),
+    Int64(Ord(SDL_LOGICAL_PRESENTATION_OVERSCAN)), 'logical name numeric');
+
+  MustFalse(CHXSDL3StringToLogicalPresentation('nope', Mode),
+    'logical name invalid');
+  MustEqual(CHXSDL3LogicalPresentationToString(
+    SDL_LOGICAL_PRESENTATION_INTEGER_SCALE), 'IntegerScale', 'logical string');
 end;
 
-begin
-  TestDefaults;
-  TestIni;
-  TestCommandLineRepeated;
-  TestCommandLineSpaces;
-  TestCommandLineTerminator;
-  TestConfigOrder;
-  TestSanitize;
-  TestSaveRoundTrip;
-  TestLogicalNames;
+var
+  MainTest: cCHXSDL3ConfigTests;
 
-  if Failures = 0 then
-    WriteLn('All config tests passed.')
-  else
-  begin
-    WriteLn(Failures, ' config test(s) failed.');
-    Halt(1);
+begin
+  MainTest := cCHXSDL3ConfigTests.Create;
+  try
+    MainTest.AddWriter(cCHXTWConsole);
+    ExitCode := MainTest.RunAllCases;
+  finally
+    MainTest.Free;
   end;
 end.
