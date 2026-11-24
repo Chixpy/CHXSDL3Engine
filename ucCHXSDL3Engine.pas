@@ -49,9 +49,12 @@ type
 
   protected
 
+    FScreenshotRequested: Boolean;
+
     procedure SetShowFrameRate(const aValue: Boolean);
     procedure SetWindow(const aValue: cCHXSDL3Window);
     procedure SetRender(const aValue: cCHXSDL3Renderer);
+    procedure DoTakeScreenshot;
 
 (*
   private // Gets and Sets
@@ -208,6 +211,12 @@ type
     procedure Run;
     {< Run the engine. }
 
+    procedure RequestScreenshot;
+    {< Request a screenshot to be taken before the next present. }
+
+    procedure TakeScreenshotNow;
+    {< Take a screenshot immediately (for tests/tools). }
+
     destructor Destroy; override;
   end;
 
@@ -237,6 +246,7 @@ end;
 procedure cCHXSDL3Engine.SetDefaultValues;
 begin
   FShowFrameRate := False;
+  FScreenshotRequested := False;
 
   CompList := cSDL3ComponentList.Create(True);
   DefCompBGColor := SDLFColor(0.5); //< Background color
@@ -272,6 +282,59 @@ begin
   FRender := aValue;
 
   SDLRenderer := Render.SDLRenderer;
+end;
+
+procedure cCHXSDL3Engine.DoTakeScreenshot;
+var
+  aDir, aBase, aTS, aName, aPath: String;
+  aSurf: PSDL_Surface;
+  i: Integer;
+begin
+  if not Assigned(Config) then Exit;
+  if not Assigned(SDLRenderer) then Exit;
+
+  aDir := Config.ScreenshotDir;
+  if aDir = '' then
+    aDir := 'scrshots';
+
+  // Create directory if needed
+  if not ForceDirectories(aDir) then
+  begin
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+      'Screenshot: cannot create directory "%s"', [PAnsiChar(aDir)]);
+    Exit;
+  end;
+
+  aBase := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
+  if aBase = '' then
+    aBase := 'screenshot';
+  aTS := FormatDateTime('yyyymmdd-hhnnss', Now);
+
+  i := 1;
+  repeat
+    aName := aBase + '-' + aTS + '_' + IntToStr(i) + '.bmp';
+    aPath := IncludeTrailingPathDelimiter(aDir) + aName;
+    Inc(i);
+  until not FileExists(aPath);
+
+  aSurf := SDL_RenderReadPixels(SDLRenderer, nil);
+  if aSurf = nil then
+  begin
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+      'Screenshot: SDL_RenderReadPixels failed: %s', [SDL_GetError]);
+    Exit;
+  end;
+  try
+    if not SDL_SaveBMP(aSurf, PAnsiChar(aPath)) then
+    begin
+      SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+        'Screenshot: SDL_SaveBMP failed for "%s": %s', [PAnsiChar(aPath), SDL_GetError]);
+      Exit;
+    end;
+    SDL_Log('Screenshot saved: %s', [PAnsiChar(aPath)]);
+  finally
+    SDL_DestroySurface(aSurf);
+  end;
 end;
 
 (*
@@ -345,6 +408,16 @@ begin
   Result := STIActive and SDL_IsTextInputActive;
 end;
 *)
+
+procedure cCHXSDL3Engine.RequestScreenshot;
+begin
+  FScreenshotRequested := True;
+end;
+
+procedure cCHXSDL3Engine.TakeScreenshotNow;
+begin
+  DoTakeScreenshot;
+end;
 
 procedure cCHXSDL3Engine.HandleEvent(const aEvent: TSDL_Event; var Handled,
   ExitProg: Boolean);
@@ -457,6 +530,11 @@ begin
             Handled := True;
           end;
 
+          SDLK_PRINTSCREEN :
+          begin
+            FScreenshotRequested := True;
+            Handled := True;
+          end;
           SDLK_ESCAPE :
           begin
             ExitProg := True; // Exit
@@ -690,6 +768,13 @@ begin
               STIFont.Color.g, STIFont.Color.b, STIFont.Color.a);
         end;
 *)
+
+        // Screenshot requested (before present)
+        if FScreenshotRequested then
+        begin
+          FScreenshotRequested := False;
+          DoTakeScreenshot;
+        end;
 
         // UPDATE RENDER
         SDL_RenderPresent(SDLRenderer);

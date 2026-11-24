@@ -1,5 +1,20 @@
 # ChangeLog 2026
 
+## 2026-11-24 21:50
+
+# Last changes (draft)
+
+## Screenshots (PrtScr) and config
+
+- `Classes/ucCHXSDL3Config.pas`: add `ScreenshotDir` (default `scrshots`), INI key `ScreenshotDir`, CLI `--screenshot-dir`, sanitize empty to default.
+- `ucCHXSDL3Engine.pas`: handle `SDLK_PRINTSCREEN` in `HandleEvent` (set `RequestScreenshot`); take BMP before present via `SDL_RenderReadPixels` + `SDL_SaveBMP`, create dir if needed, name `<ExeBase>-YYYYMMDD-HHMMSS_N.bmp` (local time, suffix from `_1`), log via `SDL_Log`/`SDL_LogWarn`; add `RequestScreenshot`/`TakeScreenshotNow`.
+
+## Tests and docs
+
+- New `Tests/TestScreenshot.pas` (dummy/software) and integrated into `Tests/build.sh`, `Tests/Build.bat`, `Tests/run_tests.sh`, `Tests/RunTests.bat`.
+- Updated `README.md` and `Tests/Readme.md` (headless suites list, `ScreenshotDir`, `--screenshot-dir`, screenshot note).
+- `RoadMap.md` marked completed for the BMP screenshot plan.
+
 ## 2026-11-24 18:16
 
 Update CHXTests and add opt-in JSON test reports

@@ -80,8 +80,8 @@ On Termux, [Termux:X11](https://github.com/termux/termux-x11) can be used.
 
 ## Running headless tests
 
-The three non-interactive suites use CHXTests: `TestConfig.pas`,
-`SmokePrimitives.pas` and `TestComponentsSetup.pas`.
+The non-interactive suites use CHXTests: `TestConfig.pas`,
+`SmokePrimitives.pas`, `TestComponentsSetup.pas` and `TestScreenshot.pas`.
 
 Unix-like:
 
@@ -97,7 +97,7 @@ cd Tests
 RunTests.bat
 ```
 
-The runners build those three programs, then run them with
+The runners build those programs, then run them with
 `SDL_VIDEODRIVER=dummy` unless the caller defines another driver. Exit
 codes are `0` success, `1` failed assertion, `2` unexpected error and `3`
 skipped or no cases executed. Individual suites can still be built and run
@@ -221,9 +221,10 @@ end;
 ```
 
 The INI file uses the `[SDL3Engine]` section with the keys `Width`, `Height`,
-`Scale`, `FullScreen`, `Render`, `FPS`, `LogicalPresentation`, `ShowFrameRate`
-and `VSync`. `LogicalPresentation` accepts `Disabled`, `Stretch`, `Letterbox`,
-`Overscan` or `IntegerScale`.
+`Scale`, `FullScreen`, `Render`, `FPS`, `LogicalPresentation`, `ShowFrameRate`,
+`VSync` and `ScreenshotDir`. `LogicalPresentation` accepts `Disabled`, `Stretch`,
+`Letterbox`, `Overscan` or `IntegerScale`. Pressing `PrintScreen` saves a BMP
+screenshot in `ScreenshotDir` (default `scrshots`, created if missing).
 
 ### Command line
 
@@ -251,6 +252,7 @@ Supported options:
 | `--logical <mode>` | `Disabled`, `Stretch`, `Letterbox`, `Overscan`, `IntegerScale` or `0..4`. |
 | `--show-fps` | Show frame rate information. |
 | `--vsync` | Enable vertical synchronization. |
+| `--screenshot-dir <dir>` | Directory for screenshots (default `scrshots`). |
 
 Options with a value accept both `--name=value` and `--name value`. Boolean
 options accept `--no-<name>` and an explicit `--name=true|false`. Arguments

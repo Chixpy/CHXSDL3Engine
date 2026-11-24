@@ -22,6 +22,7 @@ const
   krsIniKeyLogicalPresentation = 'LogicalPresentation';
   krsIniKeyShowFrameRate = 'ShowFrameRate';
   krsIniKeyVSync = 'VSync';
+  krsIniKeyScreenshotDir = 'ScreenshotDir';
 
   cCHXSDL3DefaultFPS = 30;
   cCHXSDL3MaxFPS = 1000;
@@ -46,6 +47,7 @@ type
     LogicalPresentation : TSDL_RendererLogicalPresentation;
     ShowFrameRate : Boolean;
     VSync : Boolean;
+    ScreenshotDir : String;
 
     procedure ResetDefaultConfig; virtual;
     {< Sets config properties to default values. }
@@ -199,7 +201,7 @@ begin
   Result := (aName = 'config') or (aName = 'width') or (aName = 'height')
     or (aName = 'scale') or (aName = 'fullscreen') or (aName = 'render')
     or (aName = 'fps') or (aName = 'logical') or (aName = 'show-fps')
-    or (aName = 'vsync');
+    or (aName = 'vsync') or (aName = 'screenshot-dir');
 end;
 
 procedure cCHXSDL3Config.ApplyCommandLine;
@@ -336,6 +338,9 @@ begin
       'vsync' :
         if TryStrToBool(aValue, aBool) then
           VSync := aBool;
+      'screenshot-dir' :
+        if aValue <> '' then
+          ScreenshotDir := aValue;
       otherwise
         AddUnhandled(Result, aArg);
     end;
@@ -379,6 +384,8 @@ begin
     krsIniKeyShowFrameRate, ShowFrameRate);
   VSync := aIniFile.ReadBool(krsIniSectionSDL3Engine,
     krsIniKeyVSync, VSync);
+  ScreenshotDir := aIniFile.ReadString(krsIniSectionSDL3Engine,
+    krsIniKeyScreenshotDir, ScreenshotDir);
 end;
 
 procedure cCHXSDL3Config.ResetDefaultConfig;
@@ -392,6 +399,7 @@ begin
   LogicalPresentation := SDL_LOGICAL_PRESENTATION_LETTERBOX;
   ShowFrameRate := False;
   VSync := False;
+  ScreenshotDir := 'scrshots';
 end;
 
 procedure cCHXSDL3Config.Sanitize;
@@ -406,6 +414,9 @@ begin
   if (LogicalPresentation < SDL_LOGICAL_PRESENTATION_DISABLED)
     or (LogicalPresentation > SDL_LOGICAL_PRESENTATION_INTEGER_SCALE) then
     LogicalPresentation := SDL_LOGICAL_PRESENTATION_LETTERBOX;
+
+  if Trim(ScreenshotDir) = '' then
+    ScreenshotDir := 'scrshots';
 end;
 
 constructor cCHXSDL3Config.Create;
@@ -500,6 +511,8 @@ begin
   aIniFile.WriteBool(krsIniSectionSDL3Engine, krsIniKeyShowFrameRate,
     ShowFrameRate);
   aIniFile.WriteBool(krsIniSectionSDL3Engine, krsIniKeyVSync, VSync);
+  aIniFile.WriteString(krsIniSectionSDL3Engine, krsIniKeyScreenshotDir,
+    ScreenshotDir);
 end;
 
 end.

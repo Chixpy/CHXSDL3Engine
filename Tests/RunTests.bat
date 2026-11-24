@@ -28,6 +28,13 @@ set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 
 echo.
+echo == build TestScreenshot ==
+set "STEP=build TestScreenshot"
+call Build.bat TestScreenshot.pas
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
 echo == TestConfig ==
 set "STEP=TestConfig"
 bin\TestConfig.exe
@@ -45,6 +52,13 @@ echo.
 echo == TestComponentsSetup ==
 set "STEP=TestComponentsSetup"
 bin\TestComponentsSetup.exe
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
+echo == TestScreenshot ==
+set "STEP=TestScreenshot"
+bin\TestScreenshot.exe
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 

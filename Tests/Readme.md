@@ -23,8 +23,9 @@ CHXTests is included as a submodule at `CHXTests/`. If it is missing, run
 
 ## Headless suites
 
-`TestConfig.pas`, `SmokePrimitives.pas` and `TestComponentsSetup.pas` are
-non-interactive CHXTests suites. Compile and run all three with:
+`TestConfig.pas`, `SmokePrimitives.pas`, `TestComponentsSetup.pas` and
+`TestScreenshot.pas` are non-interactive CHXTests suites. Compile and run
+all of them with:
 
 > `./run_tests.sh` (Unix-like)
 
@@ -77,3 +78,9 @@ only initialization point for components. Cases add components before `Run`
 and from the engine's `Setup`, then assert one `Setup`/`Finish` call, the
 default colors and the logical presentation. It uses SDL dummy video with
 the software renderer.
+
+## Screenshot tests
+
+`TestScreenshot.pas` checks that screenshot capture creates BMP files in the
+configured directory (using a temporary directory), including incremental
+suffixes. It uses SDL dummy video with the software renderer.
