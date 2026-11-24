@@ -23,19 +23,32 @@ CHXTests is included as a submodule at `CHXTests/`. If it is missing, run
 
 ## Headless suites
 
-`TestConfig.pas` and `SmokePrimitives.pas` are non-interactive CHXTests
-suites. Compile and run both with:
+`TestConfig.pas`, `SmokePrimitives.pas` and `TestComponentsSetup.pas` are
+non-interactive CHXTests suites. Compile and run all three with:
 
 > `./run_tests.sh` (Unix-like)
 
 > `RunTests.bat` (Windows)
 
-Both runners set `SDL_VIDEODRIVER=dummy` unless the caller defines it, so
+The runners set `SDL_VIDEODRIVER=dummy` unless the caller defines it, so
 they also work on headless systems. The remaining programs in this folder
 are interactive visual demos or environment diagnostics and need a display.
 
 CHXTests exit codes: `0` success, `1` failed assertion, `2` unexpected error,
-`3` skipped or no cases executed.
+`3` skipped or no cases executed. A requested JSON report that cannot be
+saved also uses `2` when the tests passed.
+
+### JSON reports
+
+Every suite writes to the console. To also get a JSON report:
+
+> `./bin/TestConfig --json bin/TestConfig.json`
+
+`--json=<file>` works too. Set `CHXTESTS_JSON` to do the same for every
+suite from a runner; when its value is a directory, each suite writes
+`<suite>.json` there (directories are created as needed). A file path is
+used as-is, so the last suite overwrites earlier reports. Command line
+arguments take precedence over the variable.
 
 ## Non-interactive smoke test
 
@@ -56,3 +69,11 @@ not open a window and can run on headless systems:
 > `./bin/TestConfig`
 
 It returns exit code `0` when all checks pass.
+
+## Component setup tests
+
+`TestComponentsSetup.pas` checks that `cCHXSDL3Engine.AddComponent` is the
+only initialization point for components. Cases add components before `Run`
+and from the engine's `Setup`, then assert one `Setup`/`Finish` call, the
+default colors and the logical presentation. It uses SDL dummy video with
+the software renderer.

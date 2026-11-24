@@ -8,7 +8,7 @@ program TestConfig;
 uses
   SysUtils, IniFiles, SDL3,
   ucCHXSDL3Config,
-  ucCHXTestGroup, ucCHXTWConsole;
+  ucCHXTestGroup, ucCHXTWConsole, ucCHXTWJSON, uCHXTestJSON;
 
 type
 
@@ -298,12 +298,15 @@ end;
 
 var
   MainTest: cCHXSDL3ConfigTests;
+  JSONWriter: cCHXTWJSON;
 
 begin
   MainTest := cCHXSDL3ConfigTests.Create;
   try
     MainTest.AddWriter(cCHXTWConsole);
+    AddJSONWriter(MainTest, 'TestConfig', JSONWriter);
     ExitCode := MainTest.RunAllCases;
+    CheckJSONSaveError(JSONWriter, ExitCode);
   finally
     MainTest.Free;
   end;

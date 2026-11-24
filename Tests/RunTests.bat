@@ -21,6 +21,13 @@ set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 
 echo.
+echo == build TestComponentsSetup ==
+set "STEP=build TestComponentsSetup"
+call Build.bat TestComponentsSetup.pas
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
 echo == TestConfig ==
 set "STEP=TestConfig"
 bin\TestConfig.exe
@@ -31,6 +38,13 @@ echo.
 echo == SmokePrimitives ==
 set "STEP=SmokePrimitives"
 bin\SmokePrimitives.exe
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
+echo == TestComponentsSetup ==
+set "STEP=TestComponentsSetup"
+bin\TestComponentsSetup.exe
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 

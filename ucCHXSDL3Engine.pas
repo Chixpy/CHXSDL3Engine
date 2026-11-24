@@ -89,6 +89,17 @@ type
     }
 
     function AddComponent(const aComp: caCHXSDL3Component): caCHXSDL3Component;
+    {< Add a component to the engine and initialize it.
+
+      This is the only initialization point: `Run` does not call `Setup`
+      again. The renderer must be initialized before adding components,
+      either after `Init` or from `cCHXSDL3Engine.Setup`, so logical
+      presentation can be copied to the component. The engine owns the
+      component and frees it on destruction.
+
+      @param(aComp Component to add.)
+      @returns(The same component, or @nil if aComp is not assigned.)
+    }
 
     procedure SetDefaultValues;
 
@@ -614,11 +625,8 @@ begin
   FPSMng := cCHXSDL3FPSManager.Create(Config.FPS);
 
   try
+    // Components are initialized by AddComponent.
     Self.Setup;
-
-    // If added before running...
-    for aComp in CompList do
-      aComp.Setup;
 
     while (not ProgExit) do
     begin

@@ -15,7 +15,7 @@ program SmokePrimitives;
 uses
   SysUtils, CTypes, Math, SDL3,
   ucCHXSDL3Window, ucCHXSDL3Renderer, uCHXSDL3TypeHelpers,
-  ucCHXTestGroup, ucCHXTWConsole;
+  ucCHXTestGroup, ucCHXTWConsole, ucCHXTWJSON, uCHXTestJSON;
 
 type
 
@@ -299,6 +299,7 @@ end;
 
 var
   MainTest: cCHXSDL3RendererSmokeTests;
+  JSONWriter: cCHXTWJSON;
 
 begin
   SDL_SetAppMetadata('SmokePrimitives', '1.0',
@@ -306,7 +307,9 @@ begin
   MainTest := cCHXSDL3RendererSmokeTests.Create;
   try
     MainTest.AddWriter(cCHXTWConsole);
+    AddJSONWriter(MainTest, 'SmokePrimitives', JSONWriter);
     ExitCode := MainTest.RunAllCases;
+    CheckJSONSaveError(JSONWriter, ExitCode);
   finally
     MainTest.Free;
   end;

@@ -24,7 +24,9 @@ RunStep()
 
 RunStep 'build TestConfig' ./build.sh TestConfig.pas
 RunStep 'build SmokePrimitives' ./build.sh SmokePrimitives.pas
+RunStep 'build TestComponentsSetup' ./build.sh TestComponentsSetup.pas
 RunStep 'TestConfig' ./bin/TestConfig
 RunStep 'SmokePrimitives' ./bin/SmokePrimitives
+RunStep 'TestComponentsSetup' ./bin/TestComponentsSetup
 
 printf '\nAll headless suites passed.\n'

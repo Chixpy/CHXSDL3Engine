@@ -80,7 +80,8 @@ On Termux, [Termux:X11](https://github.com/termux/termux-x11) can be used.
 
 ## Running headless tests
 
-The two non-interactive suites use CHXTests.
+The three non-interactive suites use CHXTests: `TestConfig.pas`,
+`SmokePrimitives.pas` and `TestComponentsSetup.pas`.
 
 Unix-like:
 
@@ -96,11 +97,35 @@ cd Tests
 RunTests.bat
 ```
 
-The runners build `TestConfig.pas` and `SmokePrimitives.pas`, then run them
-with `SDL_VIDEODRIVER=dummy` unless the caller defines another driver. Exit
+The runners build those three programs, then run them with
+`SDL_VIDEODRIVER=dummy` unless the caller defines another driver. Exit
 codes are `0` success, `1` failed assertion, `2` unexpected error and `3`
 skipped or no cases executed. Individual suites can still be built and run
 with `build.sh` or `Build.bat`.
+
+### Optional JSON reports
+
+Each suite always writes to the console. Add `--json <file>` (or
+`--json=<file>`) to also write a machine-readable CHXTests report:
+
+```sh
+./bin/TestConfig --json bin/TestConfig.json
+```
+
+`CHXTESTS_JSON` does the same for every suite, which is convenient with the
+runners:
+
+```sh
+CHXTESTS_JSON=bin/jsonreports ./run_tests.sh
+```
+
+When the value is a directory (existing, ending in a path separator or with
+no extension), each suite writes `<suite>.json` there. When it is a file
+path, it is used as-is and the last suite overwrites previous reports.
+Command line arguments take precedence over the environment variable.
+Reports include `generator`, `schemaVersion`, `counts`, `cases` and nested
+`groups`. If a requested report cannot be saved, the error is printed and
+the exit code becomes `2` when the tests passed.
 
 ## Minimal example
 

@@ -1,5 +1,37 @@
 # ChangeLog 2026
 
+## 2026-11-24 18:16
+
+Update CHXTests and add opt-in JSON test reports
+
+### Tests/CHXTests
+- Update the submodule from 7cddc8d to 43512b1: JSON writer, failure
+  summaries, documentation and fgl-based lists.
+
+### ucCHXSDL3Engine.pas
+- Document AddComponent as the only component initialization point and
+  remove the duplicate Setup loop from Run.
+
+### Tests/TestComponentsSetup.pas
+- Add a headless suite that checks one Setup/Finish call for components
+  added before Run and from the engine Setup, plus colors and LogPres.
+
+### Tests/uCHXTestJSON.pas
+- Add a shared helper for `--json`/`--json=` and `CHXTESTS_JSON`. Directories
+  get one report per suite. A save error sets exit code 2 when the tests
+  passed.
+
+### Tests/TestConfig.pas, Tests/SmokePrimitives.pas,
+### Tests/TestComponentsSetup.pas
+- Keep the console writer and add the JSON writer only on demand.
+
+### Tests/run_tests.sh, Tests/RunTests.bat
+- Build and run the new TestComponentsSetup suite.
+
+### README.md, Tests/Readme.md, ToDo.md
+- Document the JSON option and the new suite; mark the double Setup item as
+  done and note the pending SDL error investigation.
+
 ## 2026-11-17 17:41
 
 Use CHXTests for headless tests and add cross-platform runners

@@ -3,18 +3,20 @@
 # git_commit.sh - Update the yearly changelog and create a commit.
 #
 # Usage:
-#   1. Copy LastChanges.example.md to LastChanges.md (or let this script
-#      create it on the first run).
-#   2. Write the changes for the next commit in LastChanges.md.
-#   3. Run ./git_commit.sh from the project directory.
+#   1. Write the changes for the next commit in LastChanges.md (this script
+#      generates a template on the first run or after a successful commit).
+#   2. Run ./git_commit.sh [--add-ignore] from the project directory.
+#      --add-ignore appends LastChanges.md to .gitignore when it is missing.
 #
 # The script:
+#   - Aborts if LastChanges.md is tracked or not ignored by Git.
 #   - Prepends a dated entry to ChangeLog<YYYY>.md.
 #   - Regenerates CHANGELOG.md as an index of the yearly files.
 #   - Commits all changes with LastChanges.md as the commit message.
-#   - Clears LastChanges.md on success.
+#   - Resets LastChanges.md to the template on success.
 #
-# LastChanges.md is ignored by Git. See LastChanges.example.md for a template.
+# LastChanges.md must be ignored by Git; the script aborts otherwise. Use
+# --add-ignore to add it automatically to .gitignore.
 #
 # WARNING: This script runs "git add ." and commits everything in the current
 # directory and its subdirectories. Make sure the working tree only contains
@@ -24,16 +26,44 @@ set -u
 
 # --- CONFIGURATION ---
 LAST_CHANGES="./LastChanges.md"
-LAST_CHANGES_EXAMPLE="./LastChanges.example.md"
 INDEX="./CHANGELOG.md"
 YEAR=$(date +%Y)
 CHANGELOG="./ChangeLog${YEAR}.md"
 DATE=$(date +"%Y-%m-%d %H:%M")
 
+write_last_changes_template() {
+    cat > "$LAST_CHANGES" <<'EOF'
+<!--
+Write the changes for the next commit in this file.
+
+- The first line is used as the commit subject.
+- Group the details by file, unit, class or environment.
+- HTML comments like this one are removed automatically.
+- You can also use a simple list with sublists for varied changes:
+
+  - Area A
+    - Change 1
+    - Change 2
+  - Area B
+    - Change 3
+-->
+
+TODO: short summary of the change.
+
+### `path/to/file.pas`
+- Change 1.
+- Change 2.
+
+### `path/to/other.pas`
+- Change 3.
+EOF
+}
+
 TEMP_MSG=""
 TEMP_LOG=""
 TEMP_TITLE=""
 BACKUP_DIR=""
+ADD_IGNORE=0
 
 # --- HELPERS ---
 die() {
@@ -61,6 +91,18 @@ cleanup() {
 
 trap cleanup EXIT
 
+# --- 0. PARSE ARGUMENTS ---
+for arg in "$@"; do
+    case "$arg" in
+        --add-ignore)
+            ADD_IGNORE=1
+            ;;
+        *)
+            die "unknown argument: $arg (only --add-ignore is supported)"
+            ;;
+    esac
+done
+
 # --- 1. CHECK GIT WORK TREE ---
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     die "not inside a Git work tree. Move to the project directory first."
@@ -68,18 +110,35 @@ fi
 
 # --- 2. CHECK LAST CHANGES DRAFT ---
 if [ ! -f "$LAST_CHANGES" ]; then
-    if [ -f "$LAST_CHANGES_EXAMPLE" ]; then
-        cp "$LAST_CHANGES_EXAMPLE" "$LAST_CHANGES"
-        echo "📥 Created $LAST_CHANGES from $LAST_CHANGES_EXAMPLE."
-        echo "📝 Write the changes for this commit and run the script again."
-        exit 1
-    fi
-
-    die "$LAST_CHANGES does not exist. Create it with the changes for this commit."
+    write_last_changes_template
+    echo "📥 Created $LAST_CHANGES from the built-in template."
+    echo "📝 Write the changes for this commit and run the script again."
+    exit 1
 fi
 
 if ! grep -q '[^[:space:]]' "$LAST_CHANGES"; then
     die "$LAST_CHANGES is empty. Write the changes for this commit first."
+fi
+
+# --- 2b. LAST CHANGES MUST NOT BE COMMITTED ---
+# "git add ." below would commit LastChanges.md unless Git ignores it.
+if git ls-files --error-unmatch "$LAST_CHANGES" >/dev/null 2>&1; then
+    die "$LAST_CHANGES is tracked by Git. Run 'git rm --cached $LAST_CHANGES' and add it to .gitignore."
+fi
+
+if ! git check-ignore -q "$LAST_CHANGES"; then
+    if [ "$ADD_IGNORE" -eq 1 ]; then
+        if [ -s ".gitignore" ] && [ -n "$(tail -c 1 ".gitignore")" ]; then
+            echo "" >> ".gitignore"
+        fi
+        {
+            echo "# Local changelog draft (git_commit.sh)"
+            echo "LastChanges.md"
+        } >> ".gitignore"
+        echo "➕ Added LastChanges.md to .gitignore."
+    else
+        die "$LAST_CHANGES is not ignored by Git. Add 'LastChanges.md' to .gitignore or run with --add-ignore."
+    fi
 fi
 
 # --- 3. CLEAN THE DRAFT ---
@@ -182,8 +241,8 @@ git add .
 
 if git commit -F "$TEMP_MSG"; then
     echo "✅ Commit created successfully."
-    : > "$LAST_CHANGES"
-    echo "Cleared $LAST_CHANGES."
+    write_last_changes_template
+    echo "Reset $LAST_CHANGES to the template."
 else
     echo "❌ Git commit failed. Restoring changelog files." >&2
     restore
