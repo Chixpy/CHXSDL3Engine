@@ -1,5 +1,23 @@
 # ChangeLog 2026
 
+## 2026-11-26 23:00
+
+FontBitmap: refactor to Gray/Color variants and renderer helpers
+
+### Classes/ucCHXSDL3FontBitmap.pas
+- Refactor to `caCHXSDL3FontBitmap` base, `cCHXSDL3FontBitmapGray` (alpha mask from luminance, white=opaque/black=transparent, color/alpha mod from `Font.Color`), and `cCHXSDL3FontBitmapColor` (optional color key via `AColorKey`, no default key; respects surface alpha if no key). Keep `cCHXSDL3FontBitmap` as alias to Gray for compatibility.
+- Add basic validation/logging for glyph size and columns; document atlas/grid format in comments.
+- Render uses `SDL_RenderTexture` and restores texture color/alpha mod and blend mode as needed.
+
+### Classes/ucCHXSDL3Renderer.pas
+- Add `RenderTexture`, `SetTextureBlendMode`, and `GetTextureBlendMode` wrappers (no `inline` in implementation).
+
+### Tests/TestComponents.pas
+- Add comments clarifying default Gray usage and `cCHXSDL3FontBitmapColor` example with optional color key.
+
+### CheatSheet.md
+- Update FontBitmap section (base/Gray/Color/alias and notes).
+
 ## 2026-11-26 17:24
 
 Cleanup text input and add Tab focus cycling

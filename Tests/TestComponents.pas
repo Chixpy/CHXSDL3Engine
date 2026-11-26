@@ -71,7 +71,9 @@ begin
   aTextEdit.Text := 'Hello SDL3!';
   AddComponent(aTextEdit);
 
-  // Quick test for BitmapFont (needs a BMP file in Tests/ or cwd)
+  // Quick test for BitmapFont (needs a BMP file in Tests/ or cwd).
+  // Gray (default alias): white=opaque, black=transparent, color mod from Font.Color.
+  // Color variant example: cCHXSDL3FontBitmapColor.Create(..., AColorKey) where AColorKey=nil keeps alpha if present.
   if FileExists('font8x8.bmp') then
   begin
     FBmpFont := cCHXSDL3FontBitmap.Create(SDLRenderer, SDLFColor(1,1,1,1), 'font8x8.bmp', 8, 8, 16, 32);

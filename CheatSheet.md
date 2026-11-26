@@ -430,11 +430,22 @@ Omitted:
 
 ## Classes/ucCHXSDL3FontBitmap.pas
 
-### cCHXSDL3FontBitmap
+### caCHXSDL3FontBitmap (base)
 - Inherits: caCHXSDL3Font
-- Minimal grid bitmap from BMP (ASCII grid).
-- Props: **GlyphW, GlyphH, Columns, FirstChar, Texture** {R}
+- Grid bitmap font base (UTF-8 basic). Props: **GlyphW, GlyphH, Columns, FirstChar, Texture** {R}.
+
+### cCHXSDL3FontBitmapGray
+- Inherits: caCHXSDL3FontBitmap
+- BMP loaded as alpha mask: white = opaque, black = transparent (luminance from RGB → alpha). **Font.Color** applied via texture color/alpha mod.
 - **Create** (Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar)
+
+### cCHXSDL3FontBitmapColor
+- Inherits: caCHXSDL3FontBitmap
+- Multicolor atlas from BMP. If `AColorKey` provided (`PSDL_Color`), applied via `SDL_SetSurfaceColorKey`; if nil, no key (keeps surface alpha if any). No tint from `Font.Color`.
+- **Create** (Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar, AColorKey: PSDL_Color = nil)
+
+### cCHXSDL3FontBitmap (alias)
+- Alias of `cCHXSDL3FontBitmapGray` (compatibility).
 
 ## Classes/ucCHXSDL3Label.pas
 

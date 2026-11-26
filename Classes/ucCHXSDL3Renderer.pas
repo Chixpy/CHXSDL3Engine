@@ -345,6 +345,11 @@ type
       @param(Grey Grey in float [0..1] range.)
     }
 
+    function RenderTexture(aTexture: PSDL_Texture; aSrcRect: PSDL_FRect = nil; aDstRect: PSDL_FRect = nil): Boolean;
+    {< Draw a texture via SDL_RenderTexture. }
+    function SetTextureBlendMode(aTexture: PSDL_Texture; aBlendMode: TSDL_BlendMode): Boolean;
+    function GetTextureBlendMode(aTexture: PSDL_Texture; out aBlendMode: TSDL_BlendMode): Boolean;
+
   {
     [SP|FP]Point[s]
   }
@@ -1858,6 +1863,21 @@ begin
   //   PAnsiChar(aStr), Args);
   Result := SDL_RenderDebugText(Self.SDLRenderer, X, Y,
   PAnsiChar(Format(aFmtStr, Args)));
+end;
+
+function cCHXSDL3Renderer.RenderTexture(aTexture: PSDL_Texture; aSrcRect: PSDL_FRect; aDstRect: PSDL_FRect): Boolean;
+begin
+  Result := SDL_RenderTexture(SDLRenderer, aTexture, aSrcRect, aDstRect);
+end;
+
+function cCHXSDL3Renderer.SetTextureBlendMode(aTexture: PSDL_Texture; aBlendMode: TSDL_BlendMode): Boolean;
+begin
+  Result := SDL_SetTextureBlendMode(aTexture, aBlendMode);
+end;
+
+function cCHXSDL3Renderer.GetTextureBlendMode(aTexture: PSDL_Texture; out aBlendMode: TSDL_BlendMode): Boolean;
+begin
+  Result := SDL_GetTextureBlendMode(aTexture, @aBlendMode);
 end;
 
 end.
