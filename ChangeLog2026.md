@@ -1,5 +1,20 @@
 # ChangeLog 2026
 
+## 2026-11-26 16:32
+
+Fonts, TextEdit and docs checkpoint
+
+### Renames and API cleanup
+- Renamed `Abstracts/uaCHXSDL3Component.pas` → `ucaCHXSDL3Component.pas`, `Abstracts/uaCHXSDL3Font.pas` → `ucaCHXSDL3Font.pas`; updated all `uses`.
+- `caCHXSDL3Font.Color` exposed as public field (removed redundant property); `cCHXSDL3Label.Caption/Font/TextAlign` exposed as public fields.
+
+### Components and fonts
+- Added `cCHXSDL3Label` (one-line, clipped, aligned) and `cCHXSDL3TextEdit` (basic: focus via SDL text input, UTF-8 helpers, cursor, editing, horizontal scroll to keep cursor visible). Fixed focus by calling inherited mouse handling in `TextEdit.HandleEvent`.
+- Added minimal `cCHXSDL3FontBitmap` (grid BMP atlas) and example usage in `Tests/TestComponents.pas`; added sample `Tests/font8x8.bmp`.
+
+### Docs and roadmap
+- Updated `RoadMap.md` (phases 1–5 marked, verification notes), `ToDo.md` (phase 6 TTF plan), `README.md` (project structure), `CheatSheet.md` (font/label/textedit sections).
+
 ## 2026-11-24 21:50
 
 # Last changes (draft)

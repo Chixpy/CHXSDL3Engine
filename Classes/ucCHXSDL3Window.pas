@@ -35,9 +35,10 @@ type
     as "shortcuts" for both classes; and `SDLWindow` and `SDLRenderer` for
     both pointers.
 
-    Calls `SDL_InitSubSystem(SDL_INIT_VIDEO)` on creation and
-    `SDL_QuitSubSystem(SDL_INIT_VIDEO)` on destruction as SDL3 keeps track of
-    how many times are called each one.
+    Calls `SDL_InitSubSystem(SDL_INIT_VIDEO)` on creation when needed. The
+    VIDEO subsystem is released by `SDL_Quit()` (typically in
+    `cCHXSDL3Engine.Destroy`) rather than by `SDL_QuitSubSystem` here, to
+    avoid "operation not supported" errors on some backends during teardown.
 
     Supports creating multiple cCHXSDL3Window in the same program,
       checking its ID in event handling.
@@ -60,7 +61,7 @@ type
     FVideoInitialized: Boolean;
 
     procedure ReleaseResources;
-    {< Free renderer, window and video subsystem if they were initialized. }
+    {< Free renderer and window if initialized (VIDEO subsystem is left for SDL_Quit). }
 
   protected
     LogPresStack: Array of TLogicalPresentation;
@@ -338,11 +339,11 @@ begin
     PSDLWindow := nil;
   end;
 
-  if FVideoInitialized then
-  begin
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
-    FVideoInitialized := False;
-  end;
+  // NOTE: VIDEO subsystem is not quit here. SDL_Quit() (typically called by
+  // cCHXSDL3Engine.Destroy) releases it. Calling SDL_QuitSubSystem(SDL_INIT_VIDEO)
+  // during window teardown can emit "That operation is not supported" on some
+  // backends (e.g. dummy) and is rarely needed before full SDL_Quit().
+  FVideoInitialized := False;
 end;
 
 procedure cCHXSDL3Window.SetTitle(const aValue: String);

@@ -12,7 +12,7 @@ uses
   SDL3,
   uCHXSDL3TypeHelpers,
   ucCHXSDL3Config, ucCHXSDL3Renderer, ucCHXSDL3Window, ucCHXSDL3FPSManager,
-  uaCHXSDL3Component;
+  ucaCHXSDL3Component, ucaCHXSDL3Font, ucCHXSDL3FontDebug;
 
 type
   {
@@ -90,6 +90,12 @@ type
     {<< Default colors for background and border (Inactive and Active)
       components.
     }
+
+    FFontList: cSDL3FontList;
+    function GetFontDebug: caCHXSDL3Font;
+
+    property FontDebug: caCHXSDL3Font read GetFontDebug;
+    property FontList: cSDL3FontList read FFontList;
 
     function AddComponent(const aComp: caCHXSDL3Component): caCHXSDL3Component;
     {< Add a component to the engine and initialize it.
@@ -243,6 +249,13 @@ begin
   CompList.Add(aComp);
 end;
 
+function cCHXSDL3Engine.GetFontDebug: caCHXSDL3Font;
+begin
+  Result := nil;
+  if (FFontList <> nil) and (FFontList.Count > 0) then
+    Result := FFontList[0];
+end;
+
 procedure cCHXSDL3Engine.SetDefaultValues;
 begin
   FShowFrameRate := False;
@@ -252,6 +265,8 @@ begin
   DefCompBGColor := SDLFColor(0.5); //< Background color
   DefCompBDColor := SDLFColor(0.25); //< Border color if not focused
   DefCompHLColor := SDLFColor(1, 1, 0); //< Border color if focused
+
+  FFontList := cSDL3FontList.Create(True);
 end;
 
 procedure cCHXSDL3Engine.SetShowFrameRate(const aValue: Boolean);
@@ -675,6 +690,10 @@ begin
 
   Window := aWindow; // Sets SDLRenderer and SDLWindow
 
+  // Create default debug font (index 0)
+  if Assigned(SDLRenderer) then
+    FFontList.Add(cCHXSDL3FontDebug.Create(SDLRenderer, SDLFColor(1, 1, 1, 1)));
+
 (*
   // Pixel format of the window
   FPWinPxFmt := SDL_AllocFormat(SDL_GetWindowPixelFormat(SDLWindow.PWindow));
@@ -743,12 +762,13 @@ begin
         begin
           Window.PushRenderSize(Window.WindowWidth, Window.WindowHeight,
             SDL_LOGICAL_PRESENTATION_DISABLED);
-          Render.PushDrawColor(1, 0, 1, 1);
-          SDL_RenderDebugTextFormat(SDLRenderer,
-            Window.WindowWidth - 144, Window.WindowHeight - 8,
-            '%4d (%4d) / %4d',
-            [FPSMng.LastFullTime, LastIdleTime, LastComputeTime]);
-          Render.PopDrawColor;
+          if Assigned(FontDebug) then
+          begin
+            FontDebug.Color := SDLFColor(1, 0, 1, 1);
+            FontDebug.RenderDynStr(Window.WindowWidth - 144,
+              Window.WindowHeight - 8,
+              Format('%4d (%4d) / %4d', [FPSMng.LastFullTime, LastIdleTime, LastComputeTime]));
+          end;
           Window.PopRenderSize;
 
           // Window.Title := Format('%0:s: %1:d ms (%2:d ms)',
@@ -851,6 +871,7 @@ end;
 destructor cCHXSDL3Engine.Destroy;
 begin
   CompList.Free;
+  FFontList.Free;
 
 (* Now not needed to save changes:
 

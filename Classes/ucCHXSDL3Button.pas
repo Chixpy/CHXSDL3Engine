@@ -11,7 +11,7 @@ uses
   Classes, SysUtils, CTypes,
   SDL3,
   uCHXSDL3TypeHelpers, ucCHXSDL3Renderer,
-  uaCHXSDL3Component;
+  ucaCHXSDL3Component;
 
 const
   MinSizeButton = 10;

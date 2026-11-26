@@ -404,3 +404,49 @@ Omitted:
   - (Pos, aColor, TexCoord)
   - (Pos, aColor);
 
+
+## Abstracts/ucaCHXSDL3Font.pas
+
+### TCHXSDL3TextAlign
+- `taLeft, taCenter, taRight`
+
+### caCHXSDL3Font (abstract)
+- Fields/props:
+  - **Color** : TSDL_FColor
+  - **LineHeight** : Integer {R}
+  - **Renderer** : PSDL_Renderer {R}
+- Methods:
+  - **Create** (Renderer, Color)
+  - **MeasureText** (Text) : Integer
+  - **RenderDynStr** (X, Y, Text) : Integer
+  - **RenderDynStrClipped** (X, Y, Text, ClipWidth, Align) : Integer
+
+## Classes/ucCHXSDL3FontDebug.pas
+
+### cCHXSDL3FontDebug
+- Inherits: caCHXSDL3Font
+- Uses `SDL_RenderDebugText`; `LineHeight` = 8. `MeasureText` approx 8*UTF-8 char count.
+- **Create** (Renderer, Color)
+
+## Classes/ucCHXSDL3FontBitmap.pas
+
+### cCHXSDL3FontBitmap
+- Inherits: caCHXSDL3Font
+- Minimal grid bitmap from BMP (ASCII grid).
+- Props: **GlyphW, GlyphH, Columns, FirstChar, Texture** {R}
+- **Create** (Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar)
+
+## Classes/ucCHXSDL3Label.pas
+
+### cCHXSDL3Label
+- Inherits: caCHXSDL3Component
+- Fields: **Font** : caCHXSDL3Font; **Caption** : string; **TextAlign** : TCHXSDL3TextAlign
+- **Create** (ID, X, Y, W, H, Font=nil, Caption='')
+
+## Classes/ucCHXSDL3TextEdit.pas
+
+### cCHXSDL3TextEdit
+- Inherits: caCHXSDL3Component
+- Fields: **Font** : caCHXSDL3Font; **Window** : PSDL_Window
+- Props: **Text** (read/write), **CursorPos** (read/write)
+- **Create** (ID, X, Y, W, H, Font=nil, Window=nil); focus via `SDL_Start/StopTextInput`; basic UTF-8 edit + horizontal scroll to keep cursor visible.

@@ -7,7 +7,7 @@ program TestComponents;
 {$mode ObjFPC}{$H+}{$INLINE ON}{$WARN 6058 OFF}
 uses
   SysUtils, CTypes, SDL3, uCHXSDL3TypeHelpers, ucCHXSDL3Engine,
-  uaCHXSDL3Component, ucCHXSDL3Button;
+  ucaCHXSDL3Component, ucCHXSDL3Button, ucCHXSDL3TextEdit, ucCHXSDL3Label, ucCHXSDL3FontBitmap;
 
 const
   kRenderH = 200;
@@ -32,6 +32,7 @@ type
 
   public
     ShowHelp: Boolean;
+    FBmpFont: cCHXSDL3FontBitmap;
 
     sButtonPushed: String;
 
@@ -53,8 +54,11 @@ end;
 procedure cSDL3Eng.Setup;
 var
   aButton : cCHXSDL3Button;
+  aTextEdit : cCHXSDL3TextEdit;
+  aLabel: cCHXSDL3Label;
 begin
   ShowFrameRate := True; ShowHelp := True;
+  FBmpFont := nil;
 
   aButton := cCHXSDL3Button.Create('Button 1', 20, 20, 40, 20);
   aButton.OnClick := @OnButtonClick;
@@ -63,11 +67,28 @@ begin
   aButton.OnClick := @OnButtonClick;
   AddComponent(aButton);
 
+  aTextEdit := cCHXSDL3TextEdit.Create('TextEdit1', 20, 80, 120, 16, FontDebug, SDLWindow);
+  aTextEdit.Text := 'Hello SDL3!';
+  AddComponent(aTextEdit);
+
+  // Quick test for BitmapFont (needs a BMP file in Tests/ or cwd)
+  if FileExists('font8x8.bmp') then
+  begin
+    FBmpFont := cCHXSDL3FontBitmap.Create(SDLRenderer, SDLFColor(1,1,1,1), 'font8x8.bmp', 8, 8, 16, 32);
+    if FBmpFont.Texture <> nil then
+    begin
+      aLabel := cCHXSDL3Label.Create('BmpLabel', 20, 100, 200, 16, FBmpFont, 'Bitmap Font OK');
+      AddComponent(aLabel);
+    end;
+  end;
+
   sButtonPushed := '';
 end;
 
 procedure cSDL3Eng.Finish;
 begin
+  if Assigned(FBmpFont) then
+    FreeAndNil(FBmpFont);
   // Components added are destroyed by cSDL3Engine.
 end;
 
@@ -83,11 +104,11 @@ begin
   Window.PushRenderSize(Window.WindowWidth div 2, Window.WindowHeight div 2);
   Render.PushDrawColor(1);
 
-    if Assigned(FocusedComp) then
-      Render.DebugTextF(0, 0, 'Focused: %s', [FocusedComp.ID]);
+  if Assigned(FocusedComp) then
+    Render.DebugTextF(0, 0, 'Focused: %s', [FocusedComp.ID]);
 
-    Render.DebugTextF(0, kRenderH - (8 * 3), 'Button Pushed: %s',
-      [sButtonPushed]);
+  Render.DebugTextF(0, kRenderH - (8), 'Button Pushed: %s',
+    [sButtonPushed]);
 
   Window.PopRenderSize;
   Render.PopDrawColor;

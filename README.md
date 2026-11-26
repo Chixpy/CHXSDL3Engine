@@ -263,11 +263,12 @@ array overload.
 ## Project structure
 
 ```
-Abstracts/   Component base classes.
-Classes/     Engine, window, renderer, config and FPS manager.
-Units/       Type helpers and utility units.
-Tests/       Test programs; CHXTests submodule in Tests/CHXTests/.
-SDL3/        SDL3-for-Pascal submodule.
+ucCHXSDL3Engine.pas  Main engine class (root).
+Abstracts/           Component/font base classes (e.g. ucaCHXSDL3Component, ucaCHXSDL3Font).
+Classes/             Window, renderer, config, FPS manager, components (Button, Label, TextEdit), fonts (Debug, Bitmap).
+Units/               Type helpers and utility units.
+Tests/               Test programs; CHXTests submodule in Tests/CHXTests/.
+SDL3/                SDL3-for-Pascal submodule.
 ```
 
 ## Changelog

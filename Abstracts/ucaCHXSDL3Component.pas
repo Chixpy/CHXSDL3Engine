@@ -1,4 +1,4 @@
-unit uaCHXSDL3Component;
+unit ucaCHXSDL3Component;
 {< Unit of caCHXSDL3Component abstract class.
 
   (C) 2024-2026 Chixpy https://github.com/Chixpy
@@ -8,7 +8,7 @@ unit uaCHXSDL3Component;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, CTypes,
+  Classes, SysUtils, fgl, CTypes,
   SDL3,
   uCHXSDL3TypeHelpers, ucCHXSDL3Renderer;
 
@@ -53,7 +53,7 @@ type
       var Handled, ExitProg : Boolean); virtual;
   end;
 
-  cSDL3GenCompList = specialize TObjectList<caCHXSDL3Component>;
+  cSDL3GenCompList = specialize TFPGObjectList<caCHXSDL3Component>;
   cSDL3ComponentList = class(cSDL3GenCompList);
 
   // Event Callbacks
