@@ -48,50 +48,22 @@ type
     FRender: cCHXSDL3Renderer;
 
   protected
-
     FScreenshotRequested: Boolean;
+    SDLRenderer: PSDL_Renderer; //< Window.PSDLRenderer shortcut.
+    SDLWindow: PSDL_Window; //< Window.PSDLWindow shortcut.
+    FPSMng: cCHXSDL3FPSManager; //< FPS manager
+    LastComputeTime : CUInt64;
+    LastIdleTime : CInt64;
+    CompList: cSDL3ComponentList; //< List of components
+    FocusedComp: caCHXSDL3Component; //< Focused component
+    DefCompBGColor, DefCompBDColor, DefCompHLColor: TSDL_FColor;
+    {<< Default colors for background and border (Inactive and Active) components. }
+    FFontList: cSDL3FontList;
 
     procedure SetShowFrameRate(const aValue: Boolean);
     procedure SetWindow(const aValue: cCHXSDL3Window);
     procedure SetRender(const aValue: cCHXSDL3Renderer);
     procedure DoTakeScreenshot;
-
-(*
-  private // Gets and Sets
-    FDefFont: caCHXSDL2Font;
-    FPWinPxFmt: PSDL_PixelFormat;
-
-    // Simple Input Text properties
-    {property} STIActive: Boolean;
-    {property} STIFont: caCHXSDL2Font;
-    {property} STIX: Integer;
-    {property} STIY: Integer;
-    {property} STIWidth: Integer;
-    {property} STIStrVar: PString;
-    {property} STIUpdateLive: Boolean;
-
-*)
-
-  protected
-    CurrTextInput: String;
-
-    SDLRenderer: PSDL_Renderer; //< Window.PSDLRenderer shortcut.
-    SDLWindow: PSDL_Window; //< Window.PSDLWindow shortcut.
-
-    FPSMng: cCHXSDL3FPSManager; //< FPS manager
-    LastComputeTime : CUInt64;
-    LastIdleTime : CInt64;
-
-    CompList: cSDL3ComponentList;
-    //< List of component
-    FocusedComp: caCHXSDL3Component;
-    //< Focus component
-    DefCompBGColor, DefCompBDColor, DefCompHLColor: TSDL_FColor;
-    {<< Default colors for background and border (Inactive and Active)
-      components.
-    }
-
-    FFontList: cSDL3FontList;
     function GetFontDebug: caCHXSDL3Font;
 
     property FontDebug: caCHXSDL3Font read GetFontDebug;
@@ -112,32 +84,6 @@ type
 
     procedure SetDefaultValues;
 
-(*
-    property DefFont: caCHXSDL2Font read FDefFont;
-    {< Default TTF font to use with the engine. A TTF file, size and color must
-         be set in config file or manually before Init call.
-
-       After font is loaded we can change font style with
-         cCHXSDL2FontTTF.ChangeFontStyle, but this not for continuous calls
-         because it will remove cached glyphs and texts.
-
-       If not font is loaded, 8 bit ASCII from SDL2_GFX will be used. }
-
-    property PWinPxFmt: PSDL_PixelFormat read FPWinPxFmt;
-    //< Window pixel format for new textures.
-    procedure PutPixel(const Base: PCUInt32; const Pitch: CInt;
-      const X, Y: Word; const r, g, b, a: Byte);
-    //< Put Pixel in a locked texture.
-
-
-    procedure TextInput(aFont: caCHXSDL2Font; var aText: String;
-      const aX, aY: Integer; const aWidth: Integer = 0;
-      const UpdateLive: Boolean = False);
-    {< Starts input text, so keyboard events of common keys will be disabled
-      until Enter or another event stops it. }
-    function IsEditingText: Boolean; inline;
-    {< Are we currently editing text? }
-*)
     // Abstract methods to implement in child classes.
     procedure Setup; virtual; abstract;
     procedure Compute(var ExitProg: Boolean);
@@ -390,39 +336,7 @@ begin
 end;
 *)
 
-(*
-procedure cCHXSDL3Engine.TextInput(aFont: caCHXSDL2Font; var aText: String;
-  const aX, aY: Integer; const aWidth: Integer; const UpdateLive: Boolean);
-//var
-//  aW: Integer;
-begin
-  //if aWidth < 8 then
-  //  aW := Window.LogWidth - aX
-  //else
-  //  aW := aWidth;
 
-  // Not sure about this, but seem that it defines a rect where IME /
-  //   keyboard on-screen must not cover.
-  // But we need a global SDL_Rect property.
-  //SDL_SetTextInputRect(@SDLRect(aX,aY,aW, aFont.LineHeight));
-
-  STIActive := True;
-  STIFont := aFont;
-  CurrTextInput := aText;
-  STIX := aX;
-  STIY := aY;
-  STIWidth := aWidth;
-  STIStrVar := @aText;
-  STIUpdateLive := UpdateLive;
-
-  SDL_StartTextInput;
-end;
-
-function cCHXSDL3Engine.IsEditingText: Boolean;
-begin
-  Result := STIActive and SDL_IsTextInputActive;
-end;
-*)
 
 procedure cCHXSDL3Engine.RequestScreenshot;
 begin
@@ -440,11 +354,10 @@ procedure cCHXSDL3Engine.HandleEvent(const aEvent: TSDL_Event; var Handled,
   - Window and general quit events are handled automatically.
   - ESC: Exits the program.
   - F10 / F11 / F12: Decreases / Toggles / Increases framerate.
-
-  When TextInput is active handles character keys automatically too,
-  but SDL_KEYDOWN and SDL_KEYUP are sended too, so all keys are
-  handled.
+  - Tab / Shift+Tab: cycle focus between components.
 }
+var
+  i: Integer;
 begin
   if Handled or ExitProg then Exit;
 
@@ -455,143 +368,71 @@ begin
 
     SDL_EVENT_KEY_DOWN: // (key: TSDL_KeyboardEvent)
     begin
-(*
-      if STIActive and SDL_IsTextInputActive then
-      begin
-        case aEvent.key.keysym.sym of
-          // Special keys while editing text.
-          SDLK_BACKSPACE, SDLK_DELETE :
+      case aEvent.key.key of
+        SDLK_TAB:
+        begin
+          if CompList.Count > 0 then
           begin
-            UTF8Delete(CurrTextInput, UTF8Length(CurrTextInput), 1);
-            Handled := True;
-          end;
-
-          SDLK_RETURN, SDLK_KP_ENTER :
-          begin
-            SDL_StopTextInput;
-            STIActive := False;
-            if not STIUpdateLive then
-              STIStrVar^ := CurrTextInput;
-            // Handled := True; Pass to parent handler
-          end;
-
-          { TODO: CTRL+X, CTRL+C, CTRL+V...
-
-          }
-
-          SDLK_CUT :
-          begin
-            SDL_SetClipboardText(PAnsiChar(CurrTextInput));
-            CurrTextInput := '';
-            Handled := True;
-          end;
-
-          SDLK_COPY :
-          begin
-            SDL_SetClipboardText(PAnsiChar(CurrTextInput));
-            Handled := True;
-          end;
-
-          SDLK_PASTE :
-          begin
-            if SDL_HasClipboardText then
+            // Find current focused index
+            i := -1;
+            if Assigned(FocusedComp) then
+              i := CompList.IndexOf(FocusedComp);
+            // Unfocus current
+            if (i >= 0) and (i < CompList.Count) then
+              CompList[i].Focused := False;
+            // Calculate next index
+            if (aEvent.key.mod_ and SDL_KMOD_SHIFT) <> 0 then
             begin
-              CurrTextInput += SDL_GetClipboardText;
-              Handled := True;
+              // Shift+Tab: previous
+              if i <= 0 then
+                i := CompList.Count - 1
+              else
+                Dec(i);
+            end
+            else
+            begin
+              // Tab: next
+              if (i < 0) or (i >= CompList.Count - 1) then
+                i := 0
+              else
+                Inc(i);
             end;
+            // Focus new
+            if (i >= 0) and (i < CompList.Count) then
+              CompList[i].Focused := True;
           end;
-
-          // Keys // Use ranges...
-          SDLK_SPACE, SDLK_EXCLAIM, SDLK_QUOTEDBL, SDLK_HASH,
-          SDLK_PERCENT, SDLK_DOLLAR, SDLK_AMPERSAND, SDLK_QUOTE,
-          SDLK_LEFTPAREN, SDLK_RIGHTPAREN, SDLK_ASTERISK, SDLK_PLUS,
-          SDLK_COMMA, SDLK_MINUS, SDLK_PERIOD, SDLK_SLASH, SDLK_0, SDLK_1,
-          SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9,
-          SDLK_COLON, SDLK_SEMICOLON, SDLK_LESS, SDLK_EQUALS, SDLK_GREATER,
-          SDLK_QUESTION, SDLK_AT, SDLK_LEFTBRACKET, SDLK_BACKSLASH,
-          SDLK_RIGHTBRACKET, SDLK_CARET, SDLK_UNDERSCORE, SDLK_BACKQUOTE,
-          SDLK_a, SDLK_b, SDLK_c, SDLK_d, SDLK_e, SDLK_f, SDLK_g, SDLK_h,
-          SDLK_i, SDLK_j, SDLK_k, SDLK_l, SDLK_m, SDLK_n, SDLK_o, SDLK_p,
-          SDLK_q, SDLK_r, SDLK_s, SDLK_t, SDLK_u, SDLK_v, SDLK_w, SDLK_x,
-          SDLK_y, SDLK_z, SDLK_KP_DIVIDE, SDLK_KP_MULTIPLY, SDLK_KP_MINUS,
-          SDLK_KP_PLUS, SDLK_KP_1, SDLK_KP_2, SDLK_KP_3,
-          SDLK_KP_4, SDLK_KP_5, SDLK_KP_6, SDLK_KP_7, SDLK_KP_8, SDLK_KP_9,
-          SDLK_KP_0, SDLK_KP_PERIOD :
-            Handled := True
-          else
-            Handled := False;
+          Handled := True;
         end;
-      end;
-*)
-      if not Handled then
-      begin
-        case aEvent.key.key of
-          SDLK_F10:
-          begin
-            if FPSMng.FPS > 5 then
-               FPSMng.FPS := FPSMng.FPS - 5;
-            Handled := True;
-          end;
-
-          SDLK_F11:
-          begin
-            ShowFrameRate := not ShowFrameRate;
-            Handled := True;
-          end;
-
-          SDLK_F12:
-          begin
-            FPSMng.FPS := FPSMng.FPS + 5;
-            Handled := True;
-          end;
-
-          SDLK_PRINTSCREEN :
-          begin
-            FScreenshotRequested := True;
-            Handled := True;
-          end;
-          SDLK_ESCAPE :
-          begin
-            ExitProg := True; // Exit
-            Handled := True;
-          end;
-        otherwise
-            Handled := False;
+        SDLK_F10:
+        begin
+          if FPSMng.FPS > 5 then
+             FPSMng.FPS := FPSMng.FPS - 5;
+          Handled := True;
         end;
+        SDLK_F11:
+        begin
+          ShowFrameRate := not ShowFrameRate;
+          Handled := True;
+        end;
+        SDLK_F12:
+        begin
+          FPSMng.FPS := FPSMng.FPS + 5;
+          Handled := True;
+        end;
+        SDLK_PRINTSCREEN :
+        begin
+          FScreenshotRequested := True;
+          Handled := True;
+        end;
+        SDLK_ESCAPE :
+        begin
+          ExitProg := True;
+          Handled := True;
+        end;
+      otherwise
+        Handled := False;
       end;
     end;
-(*
-    SDL_TEXTEDITING: // (edit: TSDL_TextEditingEvent)
-    begin
-      // This is called when a IME window is called (Win+.)
-      if STIActive and SDL_IsTextInputActive then
-      begin
-        CurrTextInput += aEvent.edit.Text;
-        Handled := True;
-      end;
-    end;
-    SDL_TEXTEDITING_EXT: // (exitExt: TSDL_TextEditingExtEvent)
-    begin
-      if STIActive and SDL_IsTextInputActive then
-      begin
-        CurrTextInput += aEvent.exitExt.Text;
-        // Freeing as TSDL_TextEditingExtEvent documentation says.
-        //   I never triggered this.
-        SDL_free(aEvent.exitExt.Text);
-        Handled := True;
-      end;
-    end;
-    SDL_TEXTINPUT: // (text: TSDL_TextInputEvent)
-    begin
-      if STIActive and SDL_IsTextInputActive then
-      begin
-        CurrTextInput += aEvent.Text.Text;
-        if STIUpdateLive then
-          STIStrVar^ := CurrTextInput;
-        Handled := True;
-      end;
-    end;
-*)
     SDL_EVENT_QUIT: // General exit event
     begin
       ExitProg := True;
@@ -666,11 +507,6 @@ procedure cCHXSDL3Engine.Init;
 var
   aWindow: cCHXSDL3Window;
 begin
-(*
-  if SDL_IsTextInputActive then
-    SDL_StopTextInput;
-*)
-
   // Command line arguments have the highest precedence. Applying them here
   // also covers the AutoInit = False workflow, where Config may have been
   // changed after the constructor returned.
@@ -680,9 +516,7 @@ begin
 
   ShowFrameRate := Config.ShowFrameRate;
 
-//  SDL_FreeFormat(FPWinPxFmt);
   FreeAndNil(FWindow);
-//  FreeAndNil(FDefFont);
 
   aWindow := cCHXSDL3Window.Create(Title, Config.Width,
     Config.Height, Config.Scale, Config.FullScreen, Config.Render,
@@ -693,21 +527,6 @@ begin
   // Create default debug font (index 0)
   if Assigned(SDLRenderer) then
     FFontList.Add(cCHXSDL3FontDebug.Create(SDLRenderer, SDLFColor(1, 1, 1, 1)));
-
-(*
-  // Pixel format of the window
-  FPWinPxFmt := SDL_AllocFormat(SDL_GetWindowPixelFormat(SDLWindow.PWindow));
-
-  // Creating a default TTF font.
-  if FileExists(Config.DefFontFile) and (Config.DefFontSize > 0) then
-    FDefFont := cCHXSDL2FontTTF.Create(SDLRenderer, Config.DefFontFile,
-      Config.DefFontSize, Config.DefFontColor);
-  // Fallback to SDL2_GFX
-  if not Assigned(DefFont) then
-    FDefFont := cCHXSDL2FontGFX.Create(SDLRenderer, Config.DefFontColor);
-
-  STIActive := False;
-*)
 end;
 
 procedure cCHXSDL3Engine.Run;
@@ -715,7 +534,7 @@ var
   ProgExit, HandledEvent: Boolean;
   aEvent, LPEvent: TSDL_Event;
   ComputeBegin: CUInt64; //< Actual Compute only time.
-  CursorX, i: Integer;
+  i: Integer;
   aComp: caCHXSDL3Component;
 begin
   ProgExit := False;
@@ -774,20 +593,7 @@ begin
           // Window.Title := Format('%0:s: %1:d ms (%2:d ms)',
           //   [Title, FPSMng.LastFrameTime, FPSMng.LastCompTime]);
         end;
-(*
-        // Drawing current editing text
-        if STIActive and SDL_IsTextInputActive then
-        begin
-          CursorX := STIFont.RenderDynStrClipped(CurrTextInput, STIX, STIY,
-            STIWidth);
 
-          // Drawing cursor
-          if (FPSMng.FrameCount and 32) = 32 then
-            vlineRGBA(SDLRenderer, STIX + CursorX,
-              STIY, STIY + STIFont.LineHeight, STIFont.Color.r,
-              STIFont.Color.g, STIFont.Color.b, STIFont.Color.a);
-        end;
-*)
 
         // Screenshot requested (before present)
         if FScreenshotRequested then
@@ -873,28 +679,8 @@ begin
   CompList.Free;
   FFontList.Free;
 
-(* Now not needed to save changes:
-
-  // Saving normal window size
-  if Assigned(Window) and (not Window.Maximized) then
-  begin
-    Config.Width := Window.Width;
-    Config.Height := Window.Height;
-  end;
-
-  if Config.DefaultFileName <> '' then
-    Config.SaveToFile('', False);
-*)
   Config.Free;
 
-(*
-  // This must be stopped?
-  if SDL_IsTextInputActive then
-    SDL_StopTextInput;
-
-  SDL_FreeFormat(FPWinPxFmt);
-  FreeAndNil(FDefFont);
-*)
   Window.Free; // Frees Render too
 
   // Little SDL error and leak test.

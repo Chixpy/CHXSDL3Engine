@@ -1,5 +1,16 @@
 # ChangeLog 2026
 
+## 2026-11-26 17:24
+
+Cleanup text input and add Tab focus cycling
+
+### `ucCHXSDL3Engine.pas`
+- Removed obsolete commented text input code (STI*/TextInput/IsEditingText, IME/text input event handling, related Run/Init/Destroy comments). Kept `SDL3_textinput.h` style flow replaced by `cCHXSDL3TextEdit`.
+- Added Tab/Shift+Tab to cycle focus among components in `HandleEvent` (fallback).
+
+### `ToDo.md`
+- Marked engine text input cleanup as done; noted Tab/Shift+Tab focus cycling done, arrows pending.
+
 ## 2026-11-26 16:32
 
 Fonts, TextEdit and docs checkpoint
