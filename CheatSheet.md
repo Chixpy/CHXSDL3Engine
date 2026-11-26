@@ -414,9 +414,10 @@ Omitted:
 - Fields/props:
   - **Color** : TSDL_FColor
   - **LineHeight** : Integer {R}
-  - **Renderer** : PSDL_Renderer {R}
+  - **Render** : cCHXSDL3Renderer {R} — wrapper used for renderer calls.
+  - **Renderer** : PSDL_Renderer {R} — read-only shortcut to `Render.SDLRenderer` (nil if none).
 - Methods:
-  - **Create** (Renderer, Color)
+  - **Create** (Renderer: cCHXSDL3Renderer, Color)
   - **MeasureText** (Text) : Integer
   - **RenderDynStr** (X, Y, Text) : Integer
   - **RenderDynStrClipped** (X, Y, Text, ClipWidth, Align) : Integer
@@ -425,24 +426,28 @@ Omitted:
 
 ### cCHXSDL3FontDebug
 - Inherits: caCHXSDL3Font
-- Uses `SDL_RenderDebugText`; `LineHeight` = 8. `MeasureText` approx 8*UTF-8 char count.
-- **Create** (Renderer, Color)
+- Uses `FRender.SetDrawColor` + `FRender.DebugText` (`SDL_RenderDebugText`); `LineHeight` = 8. `MeasureText` approx 8*UTF-8 char count.
+- **Create** (Renderer: cCHXSDL3Renderer, Color)
 
 ## Classes/ucCHXSDL3FontBitmap.pas
 
 ### caCHXSDL3FontBitmap (base)
 - Inherits: caCHXSDL3Font
-- Grid bitmap font base (UTF-8 basic). Props: **GlyphW, GlyphH, Columns, FirstChar, Texture** {R}.
+- Grid bitmap font base (byte-per-glyph mapping). Props: **GlyphW, GlyphH, Columns, FirstChar, AtlasCols, AtlasRows, Texture** {R}.
+- Atlas: BMP grid, row-major, `Columns` glyphs per row; glyph index = `byte - FirstChar`, glyph size `GlyphW x GlyphH`. `AtlasCols`/`AtlasRows` are computed with `SDL_GetTextureSize` (0 if unknown) and indices outside the atlas are not drawn directly.
+- Missing characters: bytes >= `$80` (UTF-8 lead bytes) and indices outside the atlas draw `'?'` when it is in the atlas, otherwise the first glyph. Width is still advanced.
+- `RenderDynStrClipped` clamps centered/right start to `X` when the text is wider than `ClipWidth` (see `ToDo.md`).
+- Texture functions (color/alpha mod, blend mode, size) call SDL directly on purpose; renderer functions go through `cCHXSDL3Renderer`.
 
 ### cCHXSDL3FontBitmapGray
 - Inherits: caCHXSDL3FontBitmap
-- BMP loaded as alpha mask: white = opaque, black = transparent (luminance from RGB → alpha). **Font.Color** applied via texture color/alpha mod.
-- **Create** (Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar)
+- BMP loaded as alpha mask: white = opaque, black = transparent (luminance from RGB → alpha). **Font.Color** applied via texture color/alpha mod; previous mod/blend state is restored after drawing.
+- **Create** (Renderer: cCHXSDL3Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar)
 
 ### cCHXSDL3FontBitmapColor
 - Inherits: caCHXSDL3FontBitmap
-- Multicolor atlas from BMP. If `AColorKey` provided (`PSDL_Color`), applied via `SDL_SetSurfaceColorKey`; if nil, no key (keeps surface alpha if any). No tint from `Font.Color`.
-- **Create** (Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar, AColorKey: PSDL_Color = nil)
+- Multicolor atlas from BMP. If `AColorKey` provided (`PSDL_Color`, 8-bit components), applied via `SDL_SetSurfaceColorKey`; if nil, no key (keeps surface alpha if any). No tint from `Font.Color`.
+- **Create** (Renderer: cCHXSDL3Renderer, Color, BMPFile, GlyphW, GlyphH, Columns, FirstChar, AColorKey: PSDL_Color = nil)
 
 ### cCHXSDL3FontBitmap (alias)
 - Alias of `cCHXSDL3FontBitmapGray` (compatibility).

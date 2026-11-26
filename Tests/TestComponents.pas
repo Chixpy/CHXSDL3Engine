@@ -76,7 +76,7 @@ begin
   // Color variant example: cCHXSDL3FontBitmapColor.Create(..., AColorKey) where AColorKey=nil keeps alpha if present.
   if FileExists('font8x8.bmp') then
   begin
-    FBmpFont := cCHXSDL3FontBitmap.Create(SDLRenderer, SDLFColor(1,1,1,1), 'font8x8.bmp', 8, 8, 16, 32);
+    FBmpFont := cCHXSDL3FontBitmap.Create(Render, SDLFColor(1,1,1,1), 'font8x8.bmp', 8, 8, 16, 32);
     if FBmpFont.Texture <> nil then
     begin
       aLabel := cCHXSDL3Label.Create('BmpLabel', 20, 100, 200, 16, FBmpFont, 'Bitmap Font OK');

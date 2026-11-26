@@ -525,8 +525,8 @@ begin
   Window := aWindow; // Sets SDLRenderer and SDLWindow
 
   // Create default debug font (index 0)
-  if Assigned(SDLRenderer) then
-    FFontList.Add(cCHXSDL3FontDebug.Create(SDLRenderer, SDLFColor(1, 1, 1, 1)));
+  if Assigned(Render) then
+    FFontList.Add(cCHXSDL3FontDebug.Create(Render, SDLFColor(1, 1, 1, 1)));
 end;
 
 procedure cCHXSDL3Engine.Run;

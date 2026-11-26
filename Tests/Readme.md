@@ -23,9 +23,9 @@ CHXTests is included as a submodule at `CHXTests/`. If it is missing, run
 
 ## Headless suites
 
-`TestConfig.pas`, `SmokePrimitives.pas`, `TestComponentsSetup.pas` and
-`TestScreenshot.pas` are non-interactive CHXTests suites. Compile and run
-all of them with:
+`TestConfig.pas`, `SmokePrimitives.pas`, `TestComponentsSetup.pas`,
+`TestScreenshot.pas` and `TestFontBitmap.pas` are non-interactive CHXTests
+suites. Compile and run all of them with:
 
 > `./run_tests.sh` (Unix-like)
 
@@ -84,3 +84,12 @@ the software renderer.
 `TestScreenshot.pas` checks that screenshot capture creates BMP files in the
 configured directory (using a temporary directory), including incremental
 suffixes. It uses SDL dummy video with the software renderer.
+
+## Bitmap font tests
+
+`TestFontBitmap.pas` generates a small BMP atlas at runtime and checks
+`cCHXSDL3FontBitmapGray`/`cCHXSDL3FontBitmapColor` at the pixel level: text
+measurement, tint/alpha mods, texture state restoration, color key, fallback
+glyph for missing/non-ASCII characters, clipping and invalid inputs. It uses
+SDL dummy video with the software renderer and cleans up its temporary
+directory.

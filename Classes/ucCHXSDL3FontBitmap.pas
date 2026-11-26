@@ -6,6 +6,17 @@ unit ucCHXSDL3FontBitmap;
   mapping in the current implementation). Glyph size @code(GlyphW x GlyphH).
   Future: external metadata/mapping for variable widths and full UTF-8.
 
+  Character mapping: ASCII bytes below @code($80) map to
+  @code(byte - FirstChar). Non-ASCII bytes (UTF-8 lead bytes) and codepoints
+  outside the atlas are drawn with a fallback glyph: @code('?') when it exists
+  in the atlas, otherwise the first glyph. This makes missing characters
+  visible until real UTF-8/TTF support is added.
+
+  SDL usage: renderer functions (@code(SDL_RenderTexture)) go through
+  @code(cCHXSDL3Renderer). Texture functions (color/alpha mod, blend mode,
+  size) are called directly to SDL on purpose: they are not
+  @code(SDL_Renderer) functions and there is no texture wrapper class yet.
+
   (C) 2026 Chixpy https://github.com/Chixpy
 }
 {$mode ObjFPC}{$H+}{$INLINE ON}{$WARN 6058 OFF}
@@ -16,7 +27,8 @@ uses
   Classes, SysUtils, CTypes, Math,
   SDL3,
   uCHXSDL3TypeHelpers,
-  ucaCHXSDL3Font;
+  ucaCHXSDL3Font,
+  ucCHXSDL3Renderer;
 
 type
   { caCHXSDL3FontBitmap - base for grid bitmap fonts }
@@ -28,19 +40,27 @@ type
     FGlyphH: Integer;
     FColumns: Integer;
     FFirstChar: Integer;
+    FAtlasCols: Integer;
+    FAtlasRows: Integer;
 
   protected
     function GetLineHeight: Integer; override;
+    function GetTintEnabled: Boolean; virtual;
     procedure FreeTexture;
+    procedure UpdateAtlasSize;
+    function GetGlyphCount: Integer;
+    function GetGlyphIndex(const aChar: Byte): Integer;
 
   public
     property GlyphW: Integer read FGlyphW;
     property GlyphH: Integer read FGlyphH;
     property Columns: Integer read FColumns;
     property FirstChar: Integer read FFirstChar;
+    property AtlasCols: Integer read FAtlasCols;
+    property AtlasRows: Integer read FAtlasRows;
     property Texture: PSDL_Texture read FTexture;
 
-    constructor Create(const ARenderer: PSDL_Renderer; const AColor: TSDL_FColor;
+    constructor Create(const ARenderer: cCHXSDL3Renderer; const AColor: TSDL_FColor;
       AGlyphW, AGlyphH, AColumns, AFirstChar: Integer); reintroduce; virtual;
     destructor Destroy; override;
 
@@ -54,8 +74,10 @@ type
     Font.Color is applied via texture color mod. }
 
   cCHXSDL3FontBitmapGray = class(caCHXSDL3FontBitmap)
+  protected
+    function GetTintEnabled: Boolean; override;
   public
-    constructor Create(const ARenderer: PSDL_Renderer; const AColor: TSDL_FColor;
+    constructor Create(const ARenderer: cCHXSDL3Renderer; const AColor: TSDL_FColor;
       const BMPFile: string; AGlyphW, AGlyphH, AColumns, AFirstChar: Integer);
       reintroduce;
   end;
@@ -66,7 +88,7 @@ type
 
   cCHXSDL3FontBitmapColor = class(caCHXSDL3FontBitmap)
   public
-    constructor Create(const ARenderer: PSDL_Renderer; const AColor: TSDL_FColor;
+    constructor Create(const ARenderer: cCHXSDL3Renderer; const AColor: TSDL_FColor;
       const BMPFile: string; AGlyphW, AGlyphH, AColumns, AFirstChar: Integer;
       const AColorKey: PSDL_Color = nil); reintroduce;
   end;
@@ -81,6 +103,72 @@ begin
   Result := FGlyphH;
 end;
 
+function caCHXSDL3FontBitmap.GetTintEnabled: Boolean;
+begin
+  Result := False;
+end;
+
+procedure caCHXSDL3FontBitmap.UpdateAtlasSize;
+var
+  W, H: CFloat;
+  Cols, Rows: Integer;
+begin
+  FAtlasCols := 0;
+  FAtlasRows := 0;
+  if (FTexture = nil) or (FGlyphW <= 0) or (FGlyphH <= 0) then Exit;
+  if not SDL_GetTextureSize(FTexture, @W, @H) then
+  begin
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+      'FontBitmap: cannot query atlas size: %s', [SDL_GetError]);
+    Exit;
+  end;
+
+  Cols := Trunc(W) div FGlyphW;
+  Rows := Trunc(H) div FGlyphH;
+  FAtlasCols := Cols;
+  FAtlasRows := Rows;
+
+  if (FColumns > 0) and (Cols < FColumns) then
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+      'FontBitmap: atlas has %d columns but Columns=%d', [Cols, FColumns]);
+  if (Trunc(W) mod FGlyphW <> 0) or (Trunc(H) mod FGlyphH <> 0) then
+    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+      'FontBitmap: atlas size %dx%d is not a multiple of glyph size %dx%d',
+      [Trunc(W), Trunc(H), FGlyphW, FGlyphH]);
+end;
+
+function caCHXSDL3FontBitmap.GetGlyphCount: Integer;
+begin
+  if (FAtlasCols <= 0) or (FAtlasRows <= 0) then
+    Result := High(Integer)
+  else
+    Result := FAtlasCols * FAtlasRows;
+end;
+
+function caCHXSDL3FontBitmap.GetGlyphIndex(const aChar: Byte): Integer;
+var
+  Count: Integer;
+begin
+  Count := GetGlyphCount;
+
+  // ASCII bytes map directly; anything else (UTF-8 lead bytes) is missing.
+  if aChar < $80 then
+    Result := aChar - FFirstChar
+  else
+    Result := -1;
+
+  // Fallback: '?' if it is in the atlas, otherwise the first glyph.
+  if (Result < 0) or (Result >= Count) then
+  begin
+    Result := Ord('?') - FFirstChar;
+    if (Result < 0) or (Result >= Count) then
+      Result := 0;
+  end;
+
+  if (Result < 0) or (Result >= Count) then
+    Result := -1;
+end;
+
 procedure caCHXSDL3FontBitmap.FreeTexture;
 begin
   if FTexture <> nil then
@@ -90,7 +178,7 @@ begin
   end;
 end;
 
-constructor caCHXSDL3FontBitmap.Create(const ARenderer: PSDL_Renderer;
+constructor caCHXSDL3FontBitmap.Create(const ARenderer: cCHXSDL3Renderer;
   const AColor: TSDL_FColor; AGlyphW, AGlyphH, AColumns, AFirstChar: Integer);
 begin
   inherited Create(ARenderer, AColor);
@@ -142,13 +230,14 @@ var
   TotalW, DrawX: CFloat;
   b: Byte;
   OldBlend: TSDL_BlendMode;
-  BlendChanged: Boolean;
+  BlendChanged, ColorModSaved, AlphaModSaved: Boolean;
   OldR, OldG, OldB, OldA: Byte;
-  HasColorMod: Boolean;
 begin
   Result := 0;
-  if (FTexture = nil) or (FGlyphW <= 0) or (FGlyphH <= 0) or (FRenderer = nil) then Exit;
-  if Text = '' then Exit;
+  if (FTexture = nil) or (FGlyphW <= 0) or (FGlyphH <= 0) or (FColumns <= 0)
+    or (FRender = nil) then Exit;
+  if (Text = '') or (ClipWidth <= 0) then Exit;
+  if IsNan(X) or IsInfinite(X) or IsNan(Y) or IsInfinite(Y) then Exit;
 
   TotalW := MeasureText(Text);
   case Align of
@@ -159,27 +248,29 @@ begin
   end;
   if DrawX < X then DrawX := X;
 
-  BlendChanged := False;
   OldBlend := SDL_BLENDMODE_NONE;
+  BlendChanged := False;
   if SDL_GetTextureBlendMode(FTexture, @OldBlend) then
   begin
     if OldBlend = SDL_BLENDMODE_NONE then
-    begin
-      SDL_SetTextureBlendMode(FTexture, SDL_BLENDMODE_BLEND);
-      BlendChanged := True;
-    end;
+      BlendChanged := SDL_SetTextureBlendMode(FTexture, SDL_BLENDMODE_BLEND);
   end;
 
-  HasColorMod := False;
-  if Self is cCHXSDL3FontBitmapGray then
+  // Default values in case the queries fail; only restore what was saved.
+  OldR := 255;
+  OldG := 255;
+  OldB := 255;
+  OldA := 255;
+  ColorModSaved := False;
+  AlphaModSaved := False;
+  if GetTintEnabled then
   begin
-    if SDL_GetTextureColorMod(FTexture, @OldR, @OldG, @OldB) then
-      HasColorMod := True;
+    ColorModSaved := SDL_GetTextureColorMod(FTexture, @OldR, @OldG, @OldB);
+    AlphaModSaved := SDL_GetTextureAlphaMod(FTexture, @OldA);
     SDL_SetTextureColorMod(FTexture,
       Round(EnsureRange(Color.R, 0.0, 1.0) * 255),
       Round(EnsureRange(Color.G, 0.0, 1.0) * 255),
       Round(EnsureRange(Color.B, 0.0, 1.0) * 255));
-    SDL_GetTextureAlphaMod(FTexture, @OldA);
     SDL_SetTextureAlphaMod(FTexture, Round(EnsureRange(Color.A, 0.0, 1.0) * 255));
   end;
 
@@ -192,8 +283,8 @@ begin
       Inc(i);
       Continue;
     end;
-    CharIdx := b - FFirstChar;
-    if (CharIdx >= 0) and (FColumns > 0) then
+    CharIdx := GetGlyphIndex(b);
+    if CharIdx >= 0 then
     begin
       Col := CharIdx mod FColumns;
       Row := CharIdx div FColumns;
@@ -201,7 +292,7 @@ begin
       DstRect := SDLFRect(DrawX + Result, Y, FGlyphW, FGlyphH);
       if (DstRect.X + DstRect.W <= X + ClipWidth) then
       begin
-        SDL_RenderTexture(FRenderer, FTexture, @SrcRect, @DstRect);
+        FRender.RenderTexture(FTexture, @SrcRect, @DstRect);
       end;
     end;
     Inc(Result, FGlyphW);
@@ -211,10 +302,12 @@ begin
   end;
   Result := Trunc(TotalW);
 
-  if (Self is cCHXSDL3FontBitmapGray) and HasColorMod then
+  if GetTintEnabled then
   begin
-    SDL_SetTextureColorMod(FTexture, OldR, OldG, OldB);
-    SDL_SetTextureAlphaMod(FTexture, OldA);
+    if ColorModSaved then
+      SDL_SetTextureColorMod(FTexture, OldR, OldG, OldB);
+    if AlphaModSaved then
+      SDL_SetTextureAlphaMod(FTexture, OldA);
   end;
 
   if BlendChanged then
@@ -223,7 +316,12 @@ end;
 
 { cCHXSDL3FontBitmapGray }
 
-constructor cCHXSDL3FontBitmapGray.Create(const ARenderer: PSDL_Renderer;
+function cCHXSDL3FontBitmapGray.GetTintEnabled: Boolean;
+begin
+  Result := True;
+end;
+
+constructor cCHXSDL3FontBitmapGray.Create(const ARenderer: cCHXSDL3Renderer;
   const AColor: TSDL_FColor; const BMPFile: string;
   AGlyphW, AGlyphH, AColumns, AFirstChar: Integer);
 var
@@ -275,7 +373,7 @@ begin
       finally
         if SDL_MustLock(aMaskSurf) then SDL_UnlockSurface(aMaskSurf);
       end;
-      FTexture := SDL_CreateTextureFromSurface(ARenderer, aMaskSurf);
+      FTexture := SDL_CreateTextureFromSurface(ARenderer.SDLRenderer, aMaskSurf);
       if FTexture = nil then
       begin
         SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
@@ -283,6 +381,7 @@ begin
         Exit;
       end;
       SDL_SetTextureBlendMode(FTexture, SDL_BLENDMODE_BLEND);
+      UpdateAtlasSize;
     finally
       SDL_DestroySurface(aMaskSurf);
     end;
@@ -293,7 +392,7 @@ end;
 
 { cCHXSDL3FontBitmapColor }
 
-constructor cCHXSDL3FontBitmapColor.Create(const ARenderer: PSDL_Renderer;
+constructor cCHXSDL3FontBitmapColor.Create(const ARenderer: cCHXSDL3Renderer;
   const AColor: TSDL_FColor; const BMPFile: string;
   AGlyphW, AGlyphH, AColumns, AFirstChar: Integer; const AColorKey: PSDL_Color);
 var
@@ -314,13 +413,12 @@ begin
   try
     if AColorKey <> nil then
     begin
+      // TSDL_Color uses 0..255 components; map them directly.
       keyVal := SDL_MapSurfaceRGB(aSurf,
-        Round(EnsureRange(AColorKey^.r, 0.0, 1.0) * 255),
-        Round(EnsureRange(AColorKey^.g, 0.0, 1.0) * 255),
-        Round(EnsureRange(AColorKey^.b, 0.0, 1.0) * 255));
+        AColorKey^.r, AColorKey^.g, AColorKey^.b);
       SDL_SetSurfaceColorKey(aSurf, True, keyVal);
     end;
-    FTexture := SDL_CreateTextureFromSurface(ARenderer, aSurf);
+    FTexture := SDL_CreateTextureFromSurface(ARenderer.SDLRenderer, aSurf);
     if FTexture = nil then
     begin
       SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
@@ -328,6 +426,7 @@ begin
       Exit;
     end;
     SDL_SetTextureBlendMode(FTexture, SDL_BLENDMODE_BLEND);
+    UpdateAtlasSize;
   finally
     SDL_DestroySurface(aSurf);
   end;

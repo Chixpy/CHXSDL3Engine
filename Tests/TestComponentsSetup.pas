@@ -9,7 +9,7 @@ program TestComponentsSetup;
 
 uses
   SysUtils, CTypes, SDL3,
-  ucCHXSDL3Engine, ucCHXSDL3Renderer, uaCHXSDL3Component,
+  ucCHXSDL3Engine, ucCHXSDL3Renderer, ucaCHXSDL3Component,
   ucCHXTestGroup, ucCHXTWConsole, ucCHXTWJSON, uCHXTestJSON;
 
 const
@@ -73,7 +73,7 @@ type
   cComponentSetupTests = class(cCHXTestGroup)
   private
     procedure CheckColor(const aColor : TSDL_FColor;
-      const aR, aG, aB, aA : Int64; const aLabel : String);
+      const aR, aG, aB, aA : Single; const aLabel : String);
     procedure CheckComponent(const aComp : cCountingComponent;
       const aLabel : String);
     procedure CheckSingleCase(const aAddInSetup : Boolean);
@@ -166,12 +166,12 @@ end;
 }
 
 procedure cComponentSetupTests.CheckColor(const aColor : TSDL_FColor;
-  const aR, aG, aB, aA : Int64; const aLabel : String);
+  const aR, aG, aB, aA : Single; const aLabel : String);
 begin
-  MustEqual(Int64(Round(aColor.R * 1000)), aR, aLabel + ' R');
-  MustEqual(Int64(Round(aColor.G * 1000)), aG, aLabel + ' G');
-  MustEqual(Int64(Round(aColor.B * 1000)), aB, aLabel + ' B');
-  MustEqual(Int64(Round(aColor.A * 1000)), aA, aLabel + ' A');
+  MustEqual(aColor.R, aR, 0.001, aLabel + ' R');
+  MustEqual(aColor.G, aG, 0.001, aLabel + ' G');
+  MustEqual(aColor.B, aB, 0.001, aLabel + ' B');
+  MustEqual(aColor.A, aA, 0.001, aLabel + ' A');
 end;
 
 procedure cComponentSetupTests.CheckComponent(
@@ -180,16 +180,16 @@ begin
   MustTrue(Assigned(aComp), aLabel + ' exists');
   if not Assigned(aComp) then Exit;
 
-  MustEqual(Int64(aComp.SetupCount), 1, aLabel + ' Setup calls');
-  MustEqual(Int64(aComp.FinishCount), 1, aLabel + ' Finish calls');
+  MustEqual(aComp.SetupCount, 1, aLabel + ' Setup calls');
+  MustEqual(aComp.FinishCount, 1, aLabel + ' Finish calls');
 
-  CheckColor(aComp.SetupBG, 500, 500, 500, 1000, aLabel + ' BGColor');
-  CheckColor(aComp.SetupBD, 250, 250, 250, 1000, aLabel + ' BDColor');
-  CheckColor(aComp.SetupHL, 1000, 1000, 0, 1000, aLabel + ' HLColor');
+  CheckColor(aComp.SetupBG, 0.5, 0.5, 0.5, 1.0, aLabel + ' BGColor');
+  CheckColor(aComp.SetupBD, 0.25, 0.25, 0.25, 1.0, aLabel + ' BDColor');
+  CheckColor(aComp.SetupHL, 1.0, 1.0, 0.0, 1.0, aLabel + ' HLColor');
 
-  MustEqual(Int64(aComp.SetupLogPresW), Int64(kRenderW),
+  MustEqual(aComp.SetupLogPresW, kRenderW,
     aLabel + ' LogPresW');
-  MustEqual(Int64(aComp.SetupLogPresH), Int64(kRenderH),
+  MustEqual(aComp.SetupLogPresH, kRenderH,
     aLabel + ' LogPresH');
   MustTrue(aComp.SetupLogPresMode = SDL_LOGICAL_PRESENTATION_LETTERBOX,
     aLabel + ' LogPresMode');
@@ -209,7 +209,7 @@ begin
 
     Engine.Run;
 
-    MustEqual(Int64(Engine.SetupCount), 1, 'engine Setup calls');
+    MustEqual(Engine.SetupCount, 1, 'engine Setup calls');
     CheckComponent(BeforeComp, 'component added before Run');
     if aAddInSetup then
       CheckComponent(Engine.CreatedComp, 'component added from Setup');

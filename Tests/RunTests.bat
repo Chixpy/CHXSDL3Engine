@@ -35,6 +35,13 @@ set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 
 echo.
+echo == build TestFontBitmap ==
+set "STEP=build TestFontBitmap"
+call Build.bat TestFontBitmap.pas
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
 echo == TestConfig ==
 set "STEP=TestConfig"
 bin\TestConfig.exe
@@ -59,6 +66,13 @@ echo.
 echo == TestScreenshot ==
 set "STEP=TestScreenshot"
 bin\TestScreenshot.exe
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
+echo == TestFontBitmap ==
+set "STEP=TestFontBitmap"
+bin\TestFontBitmap.exe
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 

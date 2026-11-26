@@ -1,5 +1,41 @@
 # ChangeLog 2026
 
+## 2026-11-27 00:47
+
+Harden bitmap fonts: renderer wrappers, texture state and pixel tests
+
+### Abstracts/ucaCHXSDL3Font.pas
+- Store a `cCHXSDL3Renderer` reference, exposed as the new `Render` property.
+- Keep `Renderer` as a read-only `PSDL_Renderer` shortcut to `Render.SDLRenderer`.
+
+### Classes/ucCHXSDL3FontBitmap.pas
+- Draw through `cCHXSDL3Renderer.RenderTexture`; texture functions still call SDL directly on purpose.
+- Restore blend mode, color mod and alpha mod independently and only when saved.
+- Add read-only `AtlasCols`/`AtlasRows` from `SDL_GetTextureSize`; warn on incomplete atlases and skip out-of-range glyphs.
+- Draw a visible fallback (`'?'` if present in the atlas, otherwise the first glyph) for non-ASCII bytes and missing codepoints.
+- Guard `RenderDynStrClipped` against empty text, zero clip width, missing texture/renderer and non-finite coordinates.
+- Replace the Gray RTTI check with a virtual `GetTintEnabled` method.
+- Fix `AColorKey`: `TSDL_Color` components are 0..255 bytes, not floats.
+
+### Classes/ucCHXSDL3FontDebug.pas, ucCHXSDL3Engine.pas, Tests/TestComponents.pas
+- Use `SetDrawColor`/`DebugText` renderer wrappers and pass `Render` when creating fonts.
+
+### Classes/ucCHXSDL3Renderer.pas
+- Remove `Get/SetTextureBlendMode`: they are texture functions, not renderer functions.
+
+### Tests/TestFontBitmap.pas
+- New headless pixel suite (8 cases, 53 assertions): Gray/Color rendering, tint, alpha, texture state restoration, color key, fallback glyph, clipping and invalid inputs.
+- Generates its BMP atlas at runtime and removes its temporary directory.
+
+### Tests/
+- Add `TestFontBitmap` to `run_tests.sh` and `RunTests.bat`; document the suite in `Readme.md`.
+- Fix the stale `uaCHXSDL3Component` unit name in `TestComponentsSetup.pas`.
+- Use float `SameValue` assertions with sigma for colors and drop redundant integer casts.
+
+### Docs
+- `CheatSheet.md`: renderer-based font API, atlas limits, fallback rule and color key handling.
+- `README.md`: known limitations for bitmap fonts, alignment and unfinished primitives.
+
 ## 2026-11-26 23:00
 
 FontBitmap: refactor to Gray/Color variants and renderer helpers

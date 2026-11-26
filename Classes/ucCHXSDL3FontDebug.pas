@@ -11,7 +11,8 @@ uses
   Classes, SysUtils, CTypes, fgl,
   SDL3,
   uCHXSDL3TypeHelpers,
-  ucaCHXSDL3Font;
+  ucaCHXSDL3Font,
+  ucCHXSDL3Renderer;
 
 const
   CHXSDL3DebugFontCharW = 8;
@@ -33,7 +34,7 @@ type
     function RenderDynStrClipped(X, Y: CFloat; const Text: string;
       ClipWidth: Integer; Align: TCHXSDL3TextAlign): Integer; override;
 
-    constructor Create(const ARenderer: PSDL_Renderer;
+    constructor Create(const ARenderer: cCHXSDL3Renderer;
       const AColor: TSDL_FColor); override;
     destructor Destroy; override;
   end;
@@ -71,10 +72,10 @@ end;
 function cCHXSDL3FontDebug.RenderDynStr(X, Y: CFloat; const Text: string): Integer;
 begin
   Result := MeasureText(Text);
-  if (Renderer = nil) or (Text = '') then Exit;
+  if (FRender = nil) or (Text = '') then Exit;
   // Set draw color from font color before drawing debug text
-  SDL_SetRenderDrawColorFloat(Renderer, Color.R, Color.G, Color.B, Color.A);
-  SDL_RenderDebugText(Renderer, X, Y, PAnsiChar(Text));
+  FRender.SetDrawColor(Color);
+  FRender.DebugText(X, Y, Text);
 end;
 
 function cCHXSDL3FontDebug.RenderDynStrClipped(X, Y: CFloat;
@@ -118,7 +119,7 @@ begin
   Result := RenderDynStr(X, Y, S);
 end;
 
-constructor cCHXSDL3FontDebug.Create(const ARenderer: PSDL_Renderer;
+constructor cCHXSDL3FontDebug.Create(const ARenderer: cCHXSDL3Renderer;
   const AColor: TSDL_FColor);
 begin
   inherited Create(ARenderer, AColor);

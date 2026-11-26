@@ -271,6 +271,21 @@ Tests/               Test programs; CHXTests submodule in Tests/CHXTests/.
 SDL3/                SDL3-for-Pascal submodule.
 ```
 
+## Known limitations
+
+- **Fonts map bytes, not UTF-8 codepoints.** Bitmap fonts use a fixed grid:
+  one byte maps to one glyph through `FirstChar`/`Columns`, with no variable
+  width metadata. Non-ASCII bytes and codepoints outside the atlas draw a
+  visible fallback glyph (`'?'` when available, otherwise the first glyph)
+  instead of being silently skipped. TTF/UTF-8 rendering is not implemented.
+- **Alignment with long text.** `RenderDynStrClipped` clamps centered/right
+  start to `X` when the text is wider than `ClipWidth`, so the visible part is
+  the beginning of the text.
+- **Some renderer variants are unfinished.** The FP ellipse block is disabled
+  and several SP/FP primitives are still pending in the source.
+- **Components are minimal.** `cCHXSDL3Button` has caption/font/glyph code
+  commented out and no hover/pressed/disabled states.
+
 ## Changelog
 
 Changes are recorded per year in `ChangeLog<YYYY>.md`; `CHANGELOG.md` is

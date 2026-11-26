@@ -13,7 +13,8 @@ interface
 uses
   Classes, SysUtils, CTypes,
   SDL3,
-  uCHXSDL3TypeHelpers;
+  uCHXSDL3TypeHelpers,
+  ucCHXSDL3Renderer;
 
 type
   TCHXSDL3TextAlign = (
@@ -26,13 +27,15 @@ type
 
   caCHXSDL3Font = class(TPersistent)
   protected
-    FRenderer: PSDL_Renderer;
+    FRender: cCHXSDL3Renderer;
     function GetLineHeight: Integer; virtual; abstract;
+    function GetRenderer: PSDL_Renderer;
 
   public
     Color: TSDL_FColor;
     property LineHeight: Integer read GetLineHeight;
-    property Renderer: PSDL_Renderer read FRenderer;
+    property Render: cCHXSDL3Renderer read FRender;
+    property Renderer: PSDL_Renderer read GetRenderer;
 
     {< Measure text width for a single line (UTF-8). }
     function MeasureText(const Text: string): Integer; virtual; abstract;
@@ -46,7 +49,7 @@ type
       ClipWidth: Integer; Align: TCHXSDL3TextAlign): Integer;
       virtual; abstract;
 
-    constructor Create(const ARenderer: PSDL_Renderer;
+    constructor Create(const ARenderer: cCHXSDL3Renderer;
       const AColor: TSDL_FColor); virtual;
     destructor Destroy; override;
   end;
@@ -55,11 +58,19 @@ implementation
 
 { caCHXSDL3Font }
 
-constructor caCHXSDL3Font.Create(const ARenderer: PSDL_Renderer;
+function caCHXSDL3Font.GetRenderer: PSDL_Renderer;
+begin
+  if Assigned(FRender) then
+    Result := FRender.SDLRenderer
+  else
+    Result := nil;
+end;
+
+constructor caCHXSDL3Font.Create(const ARenderer: cCHXSDL3Renderer;
   const AColor: TSDL_FColor);
 begin
   inherited Create;
-  FRenderer := ARenderer;
+  FRender := ARenderer;
   Color := AColor;
 end;
 
