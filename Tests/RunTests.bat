@@ -42,6 +42,13 @@ set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 
 echo.
+echo == build TestPrimitivesPixels ==
+set "STEP=build TestPrimitivesPixels"
+call Build.bat TestPrimitivesPixels.pas
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
 echo == TestConfig ==
 set "STEP=TestConfig"
 bin\TestConfig.exe
@@ -73,6 +80,13 @@ echo.
 echo == TestFontBitmap ==
 set "STEP=TestFontBitmap"
 bin\TestFontBitmap.exe
+set "RC=%ERRORLEVEL%"
+if not "%RC%"=="0" goto :fail
+
+echo.
+echo == TestPrimitivesPixels ==
+set "STEP=TestPrimitivesPixels"
+bin\TestPrimitivesPixels.exe
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" goto :fail
 

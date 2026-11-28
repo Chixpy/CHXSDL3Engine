@@ -1,5 +1,23 @@
 # ChangeLog 2026
 
+## 2026-11-28 12:33
+
+Complete the ellipse FP family and add primitive pixel tests
+
+### Renderer
+- `Classes/ucCHXSDL3Renderer.pas`: declare and document `FPEllipse`, `FPEllipseBorder`, `FPEllipseFilled`, `FPEllipseFillOnly`, `FPEllipseInRect`, `FPEllipseInRectBorder`, `FPEllipseInRectFilled` and `FPEllipseInRectFillOnly` (`CFloat`).
+- `Classes/CHXSDL3Renderer/Ellipse.inc`: implement FP as finite validation + `Round` + SP delegation; remove the old commented FP block and `EllipseInRectOnlyFillFP`. `FPEllipse` color dispatch uses `PushDrawColor`/`PopDrawColor`.
+
+### Tests
+- `Tests/SmokePrimitives.pas`: FP ellipse smoke cases (border, fill, fill-only, colors, rounding, negatives, W/H negatives, NaN, large radii, off-screen).
+- `Tests/TestPrimitivesPixels.pas`: new 320x240 pixel suite (17 cases, 972 assertions) for ellipses and the other primitives; integrated in `run_tests.sh`, `RunTests.bat` and `Tests/Readme.md`.
+
+### Docs
+- `CheatSheet.md`: drawing families, FP rounding/limits and ellipse signatures.
+- `README.md`: headless suite list and renderer variant limitations.
+- `RoadMap.md`, `ToDo.md`: phase tracking and ToDo updates.
+
+Verification: 6 headless suites green, debug and -dRELEASE builds, no memory leaks.
 ## 2026-11-27 00:47
 
 Harden bitmap fonts: renderer wrappers, texture state and pixel tests

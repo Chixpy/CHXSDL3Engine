@@ -27,10 +27,12 @@ RunStep 'build SmokePrimitives' ./build.sh SmokePrimitives.pas
 RunStep 'build TestComponentsSetup' ./build.sh TestComponentsSetup.pas
 RunStep 'build TestScreenshot' ./build.sh TestScreenshot.pas
 RunStep 'build TestFontBitmap' ./build.sh TestFontBitmap.pas
+RunStep 'build TestPrimitivesPixels' ./build.sh TestPrimitivesPixels.pas
 RunStep 'TestConfig' ./bin/TestConfig
 RunStep 'SmokePrimitives' ./bin/SmokePrimitives
 RunStep 'TestComponentsSetup' ./bin/TestComponentsSetup
 RunStep 'TestScreenshot' ./bin/TestScreenshot
 RunStep 'TestFontBitmap' ./bin/TestFontBitmap
+RunStep 'TestPrimitivesPixels' ./bin/TestPrimitivesPixels
 
 printf '\nAll headless suites passed.\n'

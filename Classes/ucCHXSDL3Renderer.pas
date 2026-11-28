@@ -75,9 +75,12 @@ unit ucCHXSDL3Renderer;
   - Encapsulate `TSDL_Renderer` drawing functions within a dedicated class.
   - Add significant primitive drawing functions.
   - Alternative methods to different kind of drawing:
-    - Integer rasterization algorithms that rounds coord to whole pixel.
-    - Adaptation of this methods to SDL Logical Presentation subpixel.
-    - Try to draw primitives with accelerated triangles, rects and lines.
+    - Default methods: accelerated geometry (triangles, rects and lines),
+      smooth and aware of SDL Logical Presentation.
+    - `SP[x]` methods (_SubPixel_): integer rasterization algorithms adapted
+      to the subpixel offsets introduced by SDL Logical Presentation.
+    - `FP[x]` methods (_Full Pixel_): integer rasterization algorithms that
+      round all geometry to whole pixels and ignore subpixel offsets.
   - Add some Quality of Life features:
     - Overloaded variants of functions for various parameter types:
       - Point: `P: TSDL_FPoint` <=> `X, Y: CFloat`
@@ -100,6 +103,26 @@ unit ucCHXSDL3Renderer;
   Separately in `uCHXSDL3TypeHelpers`, there are several useful types and
   helpers for SDL data structures.
 
+  ## Drawing families:
+
+  Primitives that support the three families expose three method names:
+
+  - `Ellipse`, `Line`, `Circle`, ...: default, geometry based. SDL draws them
+    with triangles, rects or lines, so they are smooth and follow the current
+    Logical Presentation. This is the recommended choice for normal use.
+  - `SPEllipse`, `SPLine`, `SPCircle`, ...: _SubPixel_ rasterization. The
+    classic integer algorithms are adapted to the fractional offset of the
+    current Logical Presentation, so each logical pixel keeps its size and the
+    shape stays aligned with the scaled output.
+  - `FPEllipse`, `FPLine`, `FPCircle`, ...: _Full Pixel_ rasterization. The
+    classic integer algorithms draw on whole pixels. They accept `CFloat`
+    parameters for API consistency, but finite values are validated and
+    `X`, `Y`, `W`, `H`, `RX` and `RY` are rounded with `Round` before drawing.
+
+  `FP` and `SP` are opt-in alternatives; methods without a prefix keep the
+  geometric/default behaviour. When the input coordinates are already
+  integers, `FP` and `SP` must produce the same pixels.
+
   More features can be added:
 
   - Primitive rotations.
@@ -111,10 +134,13 @@ unit ucCHXSDL3Renderer;
 
   ## ToDo:
 
-  - Create alternative drawing methods:
-    - Draw all with Triangles, Rectangles or Lines.
-    - FP[x]: Classic integer algorithms with rounded coords.
-    - SP[x]: Classic integer algorithms with subpixel adaptation.
+  - Complete the alternative drawing methods:
+    - Draw all with Triangles, Rectangles or Lines (default methods).
+    - `FP[x]`: classic integer algorithms with rounded coords. `FPPoint[s]`
+      exist; the ellipse family is being completed first and the rest of the
+      primitives are still pending.
+    - `SP[x]`: classic integer algorithms with subpixel adaptation. `Line`
+      and `RegPoly` still need real implementations.
   - Logical Presentation quirks with _Integer Algorithms_:
     - _Points_ are drawn at subpixel position with scaled size. Lines
       (and Rects) are 1 scaled to point thick. Filled Rects are drawn at
@@ -1453,6 +1479,8 @@ type
       : Boolean;
     function SPEllipse(const X, Y, RX, RY : CFloat;
       const BorderC, FillC : TSDL_FColor) : Boolean;
+    function FPEllipse(const X, Y, RX, RY : CFloat;
+      const BorderC, FillC : TSDL_FColor) : Boolean;
     {< Draw a filled Axis Aligned Ellipse and its border with different colors
       described by its center and radii.
 
@@ -1468,6 +1496,7 @@ type
       const QuadPoints : CInt = -1) : Boolean; overload;
     function SPEllipseBorder(const X, Y : CFloat; RX, RY : CFloat) : Boolean;
       overload;
+    function FPEllipseBorder(const X, Y, RX, RY : CFloat) : Boolean;
     {< Draw an Axis Aligned Ellipse border with current draw color
       described by its center and radii.
 
@@ -1481,6 +1510,7 @@ type
       const QuadPoints : CInt = -1) : Boolean; overload;
     function SPEllipseFilled(const X, Y : CFloat; RX, RY : CFloat) : Boolean;
       overload;
+    function FPEllipseFilled(const X, Y, RX, RY : CFloat) : Boolean;
     {< Draw a filled Axis Aligned Ellipse with current draw color
       described by its center and radii.
 
@@ -1493,6 +1523,7 @@ type
     function EllipseFillOnly(const X, Y : CFloat; RX, RY : CFloat;
       const QuadPoints : CInt = -1) : Boolean;
     function SPEllipseFillOnly(const X, Y : CFloat; RX, RY : CFloat) : Boolean;
+    function FPEllipseFillOnly(const X, Y, RX, RY : CFloat) : Boolean;
     {< Draw the fill of an Axis Aligned Ellipse with current draw color
       described by its center and radii.
 
@@ -1502,9 +1533,7 @@ type
       @param(RY Vertical radius of the ellipse.)
     }
 
-    // function FPEllipseBorder(const X, Y, RX, RY : CFloat)
-    // function FPEllipseFilled(const X, Y, RX, RY : CFloat)
-    // function FpEllipseFillOnly(const X, Y, RX, RY : CFloat)
+
 
     function EllipseInRect(const aRect : TSDL_FRect;
       const BorderC, FillC : TSDL_FColor; const QuadPoints : CInt = -1)
@@ -1596,20 +1625,45 @@ type
       @param(aRect Rect where the ellipse is inside)
     }
 
-    // function FPEllipseInRect(const aRect : TSDL_FRect;
-    //   const BorderC, FillC : TSDL_FColor) : Boolean; overload; inline;
-    // function FPEllipseInRect(const X, Y, W, H : CFloat;
-    //   const BorderC, FillC : TSDL_FColor) : Boolean; overload;
-    // function FPEllipseInRectBorder(const aRect : TSDL_FRect) : Boolean;
-    //   overload; inline;
-    // function FPEllipseInRectBorder(X, Y, W, H : CFloat) : Boolean; overload;
-    // function FPEllipseInRectFilled(const aRect : TSDL_FRect) : Boolean;
-    //   overload; inline;
-    // function FPEllipseInRectFilled(X, Y, W, H : CFloat) : Boolean; overload;
-    // function FPEllipseInRectFillOnly(const aRect : TSDL_FRect) : Boolean;
-    //   overload; inline;
-    // function FPEllipseInRectFillOnly(X, Y, W, H : CFloat) : Boolean;
-    //   overload;
+    function FPEllipseInRect(const aRect : TSDL_FRect;
+      const BorderC, FillC : TSDL_FColor) : Boolean; overload; inline;
+    function FPEllipseInRect(const X, Y, W, H : CFloat;
+      const BorderC, FillC : TSDL_FColor) : Boolean; overload;
+    {< Draw a filled Axis Aligned Full Pixel Ellipse and its border with
+      different colors, described by the rectangle where it is inside.
+
+      FP rounds coordinates and dimensions before drawing and delegates to
+      `SPEllipseInRect*`.
+
+      @param(aRect Rect where the ellipse is inside.)
+      @param(X Horizontal position of the top-left corner of the rectangle.)
+      @param(Y Vertical position of the top-left corner of the rectangle.)
+      @param(W Width of the rectangle or ellipse horizontal diameter.)
+      @param(H Height of the rectangle or ellipse vertical diameter.)
+      @param(BorderC Color of the border.)
+      @param(FillC Color for fill.)
+    }
+
+    function FPEllipseInRectBorder(const aRect : TSDL_FRect) : Boolean;
+      overload; inline;
+    function FPEllipseInRectBorder(X, Y, W, H : CFloat) : Boolean; overload;
+    {< Draw an Axis Aligned Full Pixel Ellipse border with current draw color,
+      described by the rectangle where it is inside.
+    }
+
+    function FPEllipseInRectFilled(const aRect : TSDL_FRect) : Boolean;
+      overload; inline;
+    function FPEllipseInRectFilled(X, Y, W, H : CFloat) : Boolean; overload;
+    {< Draw a filled Axis Aligned Full Pixel Ellipse with current draw color,
+      described by the rectangle where it is inside.
+    }
+
+    function FPEllipseInRectFillOnly(const aRect : TSDL_FRect) : Boolean;
+      overload; inline;
+    function FPEllipseInRectFillOnly(X, Y, W, H : CFloat) : Boolean; overload;
+    {< Draw the fill of an Axis Aligned Full Pixel Ellipse with current draw
+      color, described by the rectangle where it is inside.
+    }
 
   {
     RndRect[x]: Axis aligned rectangle with rounded corners.

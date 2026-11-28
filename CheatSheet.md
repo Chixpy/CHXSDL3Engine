@@ -98,6 +98,15 @@ Omitted:
 
 ### cCHXSDL3Renderer
 
+- Drawing families:
+  - **Default** (`Ellipse`, `Line`, `Rect`, ...): accelerated geometry,
+    smooth and aware of Logical Presentation.
+  - **SP** (`SPEllipse`, `SPLine`, `SPRect`, ...): integer rasterization
+    adapted to Logical Presentation subpixels.
+  - **FP** (`FPEllipse`, `FPLine`, `FPRect`, ...): integer rasterization on
+    full pixels. Accepts `CFloat`, validates finite values and rounds
+    `X`, `Y`, `W`, `H`, `RX` and `RY` before drawing.
+  - With integer coordinates, FP and SP must produce the same pixels.
 - Properties and Fields:
   - **SDLRenderer** : PSDL_Renderer
   - **FreeRenderer** : Boolean
@@ -195,10 +204,30 @@ Omitted:
     - **Ellipse**[Border|Filled|FillOnly] (X, Y, RX, RY) : Boolean
     - **TEllipseVertices** (_PArr_, X, Y, RX, RY, QuadPoints)
     - **TEllipse**[Border|Filled] (X, Y, RX, RY, QuadPoints) : Boolean
+    - **SPEllipse** (X, Y, RX, RY, BorderC, FillC) : Boolean
+    - **SPEllipse**[Border|Filled|FillOnly] (X, Y, RX, RY) : Boolean
+    - **FPEllipse** (X, Y, RX, RY, BorderC, FillC) : Boolean
+    - **FPEllipse**[Border|Filled|FillOnly] (X, Y, RX, RY) : Boolean
     - **EllipseInRect** (aRect, BorderC, FillC) : Boolean
       - (X, Y, W, H, BorderC, FillC) : Boolean
     - **EllipseInRect**[Border|Filled|FillOnly] (aRect) : Boolean
       - (X, Y, W, H) : Boolean
+    - **SPEllipseInRect** (aRect, BorderC, FillC) : Boolean
+      - (X, Y, W, H, BorderC, FillC) : Boolean
+    - **SPEllipseInRect**[Border|Filled|FillOnly] (aRect) : Boolean
+      - (X, Y, W, H) : Boolean
+    - **FPEllipseInRect** (aRect, BorderC, FillC) : Boolean
+      - (X, Y, W, H, BorderC, FillC) : Boolean
+    - **FPEllipseInRect**[Border|Filled|FillOnly] (aRect) : Boolean
+      - (X, Y, W, H) : Boolean
+   - FP ellipse limits and semantics:
+     - Validates finite values before `Round`; rejects radii above
+       `MaxRasterIterations`; degenerate radii (`Floor(RX) < 1` or
+       `Floor(RY) < 1`) draw a filled rectangle covering the bounding box;
+       `SPEllipseFillOnly` draws nothing in the degenerate case.
+     - `FPEllipseInRect*` rounds `X`, `Y`, `W` and `H`, then delegates to
+       `SPEllipseInRect*`, which normalizes negative `W`/`H`.
+     - With integer inputs, FP and SP produce the same pixels.
   - Rounded Rect with Circle:
     - **SPRndRectC** (aRect, R, BorderC, FillC) : Boolean
       - (X, Y, W, H, R, BorderC, FillC) : Boolean

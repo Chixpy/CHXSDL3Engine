@@ -24,8 +24,8 @@ CHXTests is included as a submodule at `CHXTests/`. If it is missing, run
 ## Headless suites
 
 `TestConfig.pas`, `SmokePrimitives.pas`, `TestComponentsSetup.pas`,
-`TestScreenshot.pas` and `TestFontBitmap.pas` are non-interactive CHXTests
-suites. Compile and run all of them with:
+`TestScreenshot.pas`, `TestFontBitmap.pas` and `TestPrimitivesPixels.pas`
+are non-interactive CHXTests suites. Compile and run all of them with:
 
 > `./run_tests.sh` (Unix-like)
 
@@ -93,3 +93,15 @@ measurement, tint/alpha mods, texture state restoration, color key, fallback
 glyph for missing/non-ASCII characters, clipping and invalid inputs. It uses
 SDL dummy video with the software renderer and cleans up its temporary
 directory.
+
+## Primitive pixel tests
+
+`TestPrimitivesPixels.pas` uses a 320x240 software renderer with logical
+presentation disabled and reads back the framebuffer. It checks the ellipse
+families (`SPEllipse*`, `FPEllipse*`, `SPEllipseInRect*`,
+`FPEllipseInRect*`) at the pixel level: cardinal points, fills, fill-only
+holes, symmetry, extreme radius ratios, degenerate and negative radii,
+rect-based overloads, alpha blending, clipping, non-finite inputs and the
+FP/SP equivalence with integer inputs (and FP rounding with fractional
+inputs). It also includes minimal pixel checks for points, lines, rectangles,
+frames, circles, triangles, quads and polygons.

@@ -81,7 +81,8 @@ On Termux, [Termux:X11](https://github.com/termux/termux-x11) can be used.
 ## Running headless tests
 
 The non-interactive suites use CHXTests: `TestConfig.pas`,
-`SmokePrimitives.pas`, `TestComponentsSetup.pas` and `TestScreenshot.pas`.
+`SmokePrimitives.pas`, `TestComponentsSetup.pas`, `TestScreenshot.pas`,
+`TestFontBitmap.pas` and `TestPrimitivesPixels.pas`.
 
 Unix-like:
 
@@ -281,8 +282,10 @@ SDL3/                SDL3-for-Pascal submodule.
 - **Alignment with long text.** `RenderDynStrClipped` clamps centered/right
   start to `X` when the text is wider than `ClipWidth`, so the visible part is
   the beginning of the text.
-- **Some renderer variants are unfinished.** The FP ellipse block is disabled
-  and several SP/FP primitives are still pending in the source.
+- **Some renderer variants are unfinished.** The FP family currently covers
+  points and ellipses; FP for lines, rectangles, circles, triangles, quads,
+  polygons, frames and rounded rectangles, plus SP for diagonal lines and
+  regular polygons, are still pending. See `RoadMap.md` and `ToDo.md`.
 - **Components are minimal.** `cCHXSDL3Button` has caption/font/glyph code
   commented out and no hover/pressed/disabled states.
 

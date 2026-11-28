@@ -32,6 +32,7 @@ type
     procedure TestBasicPrimitives;
     procedure TestCircles;
     procedure TestEllipses;
+    procedure TestEllipseLimits;
     procedure TestEllipseInRect;
     procedure TestRoundedRects;
     procedure TestRegularPolygons;
@@ -95,6 +96,65 @@ begin
   MustTrue(R.SPEllipseBorder(100, 100, 20, 10), 'SPEllipseBorder');
   MustTrue(R.SPEllipseFilled(100, 100, 20, 10), 'SPEllipseFilled');
   MustTrue(R.SPEllipseFillOnly(100, 100, 20, 10), 'SPEllipseFillOnly');
+  MustTrue(R.FPEllipseBorder(100, 100, 20, 10), 'FPEllipseBorder');
+  MustTrue(R.FPEllipseFilled(100, 100, 20, 10), 'FPEllipseFilled');
+  MustTrue(R.FPEllipseFillOnly(100, 100, 20, 10), 'FPEllipseFillOnly');
+  MustTrue(R.FPEllipse(100, 100, 20, 10, SDLFColor(1, 0, 0, 1),
+    SDLFColor(0, 0, 1, 1)), 'FPEllipse');
+end;
+
+procedure cCHXSDL3RendererSmokeTests.TestEllipseLimits;
+begin
+  // Degenerate ellipses: Floor(RX) < 1 or Floor(RY) < 1.
+  MustTrue(R.SPEllipseBorder(100, 100, 0, 10), 'SPEllipseBorder(RX=0)');
+  MustTrue(R.SPEllipseFilled(100, 100, 0, 10), 'SPEllipseFilled(RX=0)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, 0, 10),
+    'SPEllipseFillOnly(RX=0)');
+  MustTrue(R.SPEllipseBorder(100, 100, 10, 0), 'SPEllipseBorder(RY=0)');
+  MustTrue(R.SPEllipseFilled(100, 100, 10, 0), 'SPEllipseFilled(RY=0)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, 10, 0),
+    'SPEllipseFillOnly(RY=0)');
+  MustTrue(R.SPEllipseBorder(100, 100, 0.5, 10.5),
+    'SPEllipseBorder(subpixel degenerate)');
+  MustTrue(R.SPEllipseFilled(100, 100, 0.5, 10.5),
+    'SPEllipseFilled(subpixel degenerate)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, 0.5, 10.5),
+    'SPEllipseFillOnly(subpixel degenerate)');
+
+  // Negative radii are mirrored to positive ones.
+  MustTrue(R.SPEllipseBorder(100, 100, -20, -10),
+    'SPEllipseBorder(negative radii)');
+  MustTrue(R.SPEllipseFilled(100, 100, -20, -10),
+    'SPEllipseFilled(negative radii)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, -20, -10),
+    'SPEllipseFillOnly(negative radii)');
+
+  // Radius 1 exercises the smallest non-degenerate path.
+  MustTrue(R.SPEllipseBorder(100, 100, 1, 1), 'SPEllipseBorder(R=1)');
+  MustTrue(R.SPEllipseFilled(100, 100, 1, 1), 'SPEllipseFilled(R=1)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, 1, 1), 'SPEllipseFillOnly(R=1)');
+
+  // Large radii used to overflow the 32-bit Bresenham error terms.
+  MustTrue(R.SPEllipseBorder(100, 100, 2000, 2000),
+    'SPEllipseBorder(large radii)');
+  MustTrue(R.SPEllipseFilled(100, 100, 2000, 2000),
+    'SPEllipseFilled(large radii)');
+  MustTrue(R.SPEllipseFillOnly(100, 100, 2000, 2000),
+    'SPEllipseFillOnly(large radii)');
+
+  // FP rounds and delegates to SP.
+  MustTrue(R.FPEllipseBorder(100.4, 100.6, 20.4, 10.6),
+    'FPEllipseBorder(rounding)');
+  MustTrue(R.FPEllipseFilled(100.4, 100.6, 20.4, 10.6),
+    'FPEllipseFilled(rounding)');
+  MustTrue(R.FPEllipseFillOnly(100.4, 100.6, 20.4, 10.6),
+    'FPEllipseFillOnly(rounding)');
+  MustTrue(R.FPEllipseBorder(100, 100, -20.4, -10.6),
+    'FPEllipseBorder(negative)');
+  MustTrue(R.FPEllipseFilled(100, 100, -20.4, -10.6),
+    'FPEllipseFilled(negative)');
+  MustTrue(R.FPEllipseFillOnly(100, 100, -20.4, -10.6),
+    'FPEllipseFillOnly(negative)');
 end;
 
 procedure cCHXSDL3RendererSmokeTests.TestEllipseInRect;
@@ -105,6 +165,27 @@ begin
     'EllipseInRectFilled');
   MustTrue(R.EllipseInRectFillOnly(150, 20, 40, 20),
     'EllipseInRectFillOnly');
+  MustTrue(R.SPEllipseInRectBorder(150, 20, 40, 20),
+    'SPEllipseInRectBorder');
+  MustTrue(R.SPEllipseInRectFilled(150, 20, 40, 20),
+    'SPEllipseInRectFilled');
+  MustTrue(R.SPEllipseInRectFillOnly(150, 20, 40, 20),
+    'SPEllipseInRectFillOnly');
+  MustTrue(R.FPEllipseInRectBorder(150, 20, 40, 20),
+    'FPEllipseInRectBorder');
+  MustTrue(R.FPEllipseInRectFilled(150, 20, 40, 20),
+    'FPEllipseInRectFilled');
+  MustTrue(R.FPEllipseInRectFillOnly(150, 20, 40, 20),
+    'FPEllipseInRectFillOnly');
+  MustTrue(R.FPEllipseInRect(150.4, 20.6, 40.4, 20.6,
+    SDLFColor(1, 0, 0, 1), SDLFColor(0, 0, 1, 1)),
+    'FPEllipseInRect');
+  MustTrue(R.FPEllipseInRectBorder(150, 20, -40, -20),
+    'FPEllipseInRectBorder(negative W/H)');
+  MustTrue(R.FPEllipseInRectFilled(150, 20, -40, -20),
+    'FPEllipseInRectFilled(negative W/H)');
+  MustTrue(R.FPEllipseInRectFillOnly(150, 20, -40, -20),
+    'FPEllipseInRectFillOnly(negative W/H)');
 end;
 
 procedure cCHXSDL3RendererSmokeTests.TestRoundedRects;
@@ -195,6 +276,18 @@ begin
   MustFalse(R.SPCircleBorder(10, 10, NaN), 'SPCircleBorder(NaN)');
   MustFalse(R.EllipseBorder(10, 10, NaN, 10), 'EllipseBorder(NaN)');
   MustFalse(R.EllipseFilled(10, 10, NaN, 10), 'EllipseFilled(NaN)');
+  MustFalse(R.SPEllipseFilled(10, 10, NaN, 10), 'SPEllipseFilled(NaN)');
+  MustFalse(R.SPEllipseFillOnly(10, 10, NaN, 10),
+    'SPEllipseFillOnly(NaN)');
+  MustFalse(R.FPEllipseBorder(10, 10, NaN, 10), 'FPEllipseBorder(NaN)');
+  MustFalse(R.FPEllipseFilled(10, 10, NaN, 10), 'FPEllipseFilled(NaN)');
+  MustFalse(R.FPEllipseFillOnly(10, 10, NaN, 10), 'FPEllipseFillOnly(NaN)');
+  MustFalse(R.FPEllipseInRectBorder(10, 10, NaN, 10),
+    'FPEllipseInRectBorder(NaN)');
+  MustFalse(R.FPEllipseInRectFilled(10, 10, NaN, 10),
+    'FPEllipseInRectFilled(NaN)');
+  MustFalse(R.FPEllipseInRectFillOnly(10, 10, NaN, 10),
+    'FPEllipseInRectFillOnly(NaN)');
   MustFalse(R.SPRndRectCBorder(0, 0, 20, 20, NaN),
     'RndRectCBorder(NaN)');
   MustFalse(R.SPRndRectEBorder(0, 0, 20, 20, NaN, NaN),
@@ -209,6 +302,16 @@ begin
   MustFalse(R.SPCircleFilled(10, 10, 1e30), 'SPCircleFilled(1e30)');
   MustFalse(R.SPEllipseBorder(10, 10, 1e30, 10),
     'SPEllipseBorder(1e30)');
+  MustFalse(R.SPEllipseFilled(10, 10, 1e30, 10),
+    'SPEllipseFilled(1e30)');
+  MustFalse(R.SPEllipseFillOnly(10, 10, 1e30, 10),
+    'SPEllipseFillOnly(1e30)');
+  MustFalse(R.SPEllipseBorder(10, 10, MaxRasterIterations + 1, 10),
+    'SPEllipseBorder(MaxRasterIterations + 1)');
+  MustFalse(R.FPEllipseBorder(10, 10, 1e30, 10), 'FPEllipseBorder(1e30)');
+  MustFalse(R.FPEllipseFilled(10, 10, 1e30, 10), 'FPEllipseFilled(1e30)');
+  MustFalse(R.FPEllipseFillOnly(10, 10, 1e30, 10),
+    'FPEllipseFillOnly(1e30)');
 end;
 
 procedure cCHXSDL3RendererSmokeTests.TestOffscreen;
@@ -218,6 +321,10 @@ begin
     'SPCircleBorder(off-screen)');
   MustTrue(R.SPEllipseBorder(1e30, 1e30, 10, 10),
     'SPEllipseBorder(off-screen)');
+  MustTrue(R.FPEllipseBorder(1e30, 1e30, 10, 10),
+    'FPEllipseBorder(off-screen)');
+  MustTrue(R.FPEllipseInRectBorder(1e30, 1e30, 10, 10),
+    'FPEllipseInRectBorder(off-screen)');
 end;
 
 procedure cCHXSDL3RendererSmokeTests.TestPolygonRanges;
